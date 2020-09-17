@@ -42,8 +42,8 @@ PlayerSettings:
   m_SplashScreenLogos: []
   m_VirtualRealitySplashScreen: {fileID: 0}
   m_HolographicTrackingLossScreen: {fileID: 0}
-  defaultScreenWidth: 1024
-  defaultScreenHeight: 768
+  defaultScreenWidth: 1920
+  defaultScreenHeight: 1080
   defaultScreenWidthWeb: 960
   defaultScreenHeightWeb: 600
   m_StereoRenderingPath: 0
@@ -53,7 +53,7 @@ PlayerSettings:
   iosShowActivityIndicatorOnLoading: -1
   androidShowActivityIndicatorOnLoading: -1
   iosAppInBackgroundBehavior: 0
-  displayResolutionDialog: 1
+  displayResolutionDialog: 0
   iosAllowHTTPDownload: 1
   allowedAutorotateToPortrait: 1
   allowedAutorotateToPortraitUpsideDown: 1
@@ -64,7 +64,7 @@ PlayerSettings:
   preserveFramebufferAlpha: 0
   disableDepthAndStencilBuffers: 0
   androidBlitType: 0
-  defaultIsNativeResolution: 1
+  defaultIsNativeResolution: 0
   macRetinaSupport: 1
   runInBackground: 1
   captureSingleScreen: 0
@@ -118,7 +118,7 @@ PlayerSettings:
     16:10: 1
     16:9: 1
     Others: 1
-  bundleVersion: 0.1
+  bundleVersion: 1.0
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -235,7 +235,7 @@ PlayerSettings:
   appleEnableAutomaticSigning: 0
   iOSRequireARKit: 0
   appleEnableProMotion: 0
-  vulkanEditorSupport: 0
+  vulkanEditorSupport: 1
   clonedFromGUID: c0afd0d1d80e3634a9dac47e8a0426ea
   templatePackageId: com.unity.3d@1.0.2
   templateDefaultScene: Assets/Scenes/SampleScene.unity
@@ -578,7 +578,8 @@ PlayerSettings:
   allowUnsafeCode: 0
   additionalIl2CppArgs: 
   scriptingRuntimeVersion: 0
-  apiCompatibilityLevelPerPlatform: {}
+  apiCompatibilityLevelPerPlatform:
+    Standalone: 1
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
   metroPackageName: Template_3D
