@@ -182,8 +182,8 @@ public class Recorder_script_VR_Hoy : MonoBehaviour {
         Trajectories.speed = speed;
         Trajectories.acceleration = acceleration;
         Trajectories.contrast = contrast;
-        Trajectories.size = size;
-        Trajectories.shape = shape; 
+        // Trajectories.size = size;
+        //Trajectories.shape = shape; 
 
         // Reset trial Done boolean
         trialDone = false;

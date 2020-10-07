@@ -246,7 +246,7 @@ Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: pb_Mesh-17900
+  m_Name: pb_Mesh-3006
   serializedVersion: 9
   m_SubMeshes:
   - serializedVersion: 2
@@ -485,6 +485,16 @@ Prefab:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114179308805632834, guid: d70f71858d5f305499855a8f50d34728,
+        type: 2}
+      propertyPath: RigidBodyId
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 114740377378727684, guid: d70f71858d5f305499855a8f50d34728,
+        type: 2}
+      propertyPath: cubemapSize
+      value: 1024
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d70f71858d5f305499855a8f50d34728, type: 2}
   m_IsPrefabAsset: 0
@@ -560,6 +570,16 @@ Prefab:
     - target: {fileID: 1464968447097328, guid: e45037862af4ac641a9a461284ec0001, type: 2}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114373754176030258, guid: e45037862af4ac641a9a461284ec0001,
+        type: 2}
+      propertyPath: MouseObj
+      value: 
+      objectReference: {fileID: 1364180914}
+    - target: {fileID: 114373754176030258, guid: e45037862af4ac641a9a461284ec0001,
+        type: 2}
+      propertyPath: RigidBodyId
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e45037862af4ac641a9a461284ec0001, type: 2}
@@ -673,6 +693,11 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!1 &1364180914 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1464968447097328, guid: e45037862af4ac641a9a461284ec0001,
+    type: 2}
+  m_PrefabInternal: {fileID: 832616583}
 --- !u!1 &1465439237
 GameObject:
   m_ObjectHideFlags: 0
@@ -815,10 +840,6 @@ Prefab:
       propertyPath: m_RootOrder
       value: 3
       objectReference: {fileID: 0}
-    - target: {fileID: 1675966990905054, guid: 874feec725d7b0441af234aa63af0d97, type: 2}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 874feec725d7b0441af234aa63af0d97, type: 2}
   m_IsPrefabAsset: 0
@@ -865,10 +886,6 @@ Prefab:
     - target: {fileID: 4776661117730198, guid: 8f8e32107aa2fbc46b78fdced823b453, type: 2}
       propertyPath: m_RootOrder
       value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 1223497728156684, guid: 8f8e32107aa2fbc46b78fdced823b453, type: 2}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8f8e32107aa2fbc46b78fdced823b453, type: 2}
