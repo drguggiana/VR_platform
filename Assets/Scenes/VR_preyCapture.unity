@@ -218,9 +218,9 @@ Transform:
   m_Children:
   - {fileID: 1824232659}
   - {fileID: 615487338}
+  - {fileID: 368643080}
   - {fileID: 1556666291}
   - {fileID: 1473551131}
-  - {fileID: 368643080}
   - {fileID: 2068432205}
   m_Father: {fileID: 0}
   m_RootOrder: 1
@@ -285,21 +285,11 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4771491282455660, guid: 61e351ae3cf8a4f38b2e205c8020e299, type: 2}
       propertyPath: m_RootOrder
-      value: 4
+      value: 2
       objectReference: {fileID: 0}
-    - target: {fileID: 195862003041307028, guid: 61e351ae3cf8a4f38b2e205c8020e299,
-        type: 2}
-      propertyPath: m_Speed
-      value: 0.06
-      objectReference: {fileID: 0}
-    - target: {fileID: 1153604962043354, guid: 61e351ae3cf8a4f38b2e205c8020e299, type: 2}
+    - target: {fileID: 1287149935396566, guid: 61e351ae3cf8a4f38b2e205c8020e299, type: 2}
       propertyPath: m_IsActive
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114617523997456834, guid: 61e351ae3cf8a4f38b2e205c8020e299,
-        type: 2}
-      propertyPath: maxEncounters
-      value: 100
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 61e351ae3cf8a4f38b2e205c8020e299, type: 2}
@@ -309,7 +299,7 @@ Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: pb_Mesh41010
+  m_Name: pb_Mesh-6486
   serializedVersion: 9
   m_SubMeshes:
   - serializedVersion: 2
@@ -872,7 +862,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4461193020444080, guid: 874feec725d7b0441af234aa63af0d97, type: 2}
       propertyPath: m_RootOrder
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1675966990905054, guid: 874feec725d7b0441af234aa63af0d97, type: 2}
       propertyPath: m_IsActive
@@ -923,16 +913,21 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4776661117730198, guid: 8f8e32107aa2fbc46b78fdced823b453, type: 2}
       propertyPath: m_RootOrder
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1223497728156684, guid: 8f8e32107aa2fbc46b78fdced823b453, type: 2}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 114247280283835490, guid: 8f8e32107aa2fbc46b78fdced823b453,
         type: 2}
       propertyPath: maxEncounters
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 195576541723378150, guid: 8f8e32107aa2fbc46b78fdced823b453,
+        type: 2}
+      propertyPath: m_Speed
+      value: 0.08
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8f8e32107aa2fbc46b78fdced823b453, type: 2}
@@ -1009,6 +1004,10 @@ Prefab:
     - target: {fileID: 100002, guid: 92c445a17d0b7a24f9fbf61e29660815, type: 3}
       propertyPath: m_Layer
       value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 92c445a17d0b7a24f9fbf61e29660815, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 92c445a17d0b7a24f9fbf61e29660815, type: 3}
