@@ -46,9 +46,11 @@ public class Recorder_script_VR_Hoy : MonoBehaviour {
     private float trajectory;
 
     // Writer for saving data
-    string mouse_data;
-    string target_data;
     private StreamWriter writer;
+    private string mouse_data;
+    private string target_data;
+    private string arena_corners = "arena_coordinates: ";
+    private string header;
 
     // Use this for initialization
     void Start () {
@@ -69,6 +71,10 @@ public class Recorder_script_VR_Hoy : MonoBehaviour {
 
         // Set the writer
         writer = new StreamWriter(Paths.recording_path, true);
+
+        // Write initial parameters and header to file
+        LogSceneParams();
+        AssembleHeader();
     }
 	
 	// Update is called once per frame
@@ -150,6 +156,36 @@ public class Recorder_script_VR_Hoy : MonoBehaviour {
     }
 
 
+    // Functions for writing header of data file
+    void LogSceneParams()
+    {
+        // handle arena corners
+        string.Concat(arena_corners, "[");
+        foreach (GameObject corner in FindObsWithTag("Corner"))
+        {
+            string.Concat(arena_corners, "[", corner.transform.position.x.ToString(), ",", corner.transform.position.z.ToString(), "]", ",");
+        }
+        string.Concat(arena_corners, "]");
+        writer.WriteLine(arena_corners);
+
+        // handle any obstacles in the arena. This only logs the centroid of the obstacle
+        foreach (GameObject obstacle in FindObsWithTag("Obstacle"))
+        {
+            string obstacle_position = string.Concat(obstacle.name.ToString(), ": ");
+            string.Concat(obstacle_position, "[", obstacle.transform.position.x.ToString(), ",", obstacle.transform.position.z.ToString(), "]");
+            writer.WriteLine(obstacle_position);
+        }
+
+        // once done, write a blank line
+        writer.WriteLine("");
+    }
+
+    void AssembleHeader()
+    {
+        header = "time_m, trial_num, mouse_x_m, mouse_y_m, mouse_z_m, mouse_xrot_m, mouse_yrot_m, mouse_zrot_m, target_x_m, target_y_m, target_z_m, color_factor";
+        writer.WriteLine(header);
+    }
+
     // --- Check for end of trial --- //
     void checkTrialEnd()
     {
@@ -169,11 +205,15 @@ public class Recorder_script_VR_Hoy : MonoBehaviour {
     {
         // Parse the values for trial setup
         trial_num = message.GetInt(0);
-        speed = message.GetFloat(1);
-        acceleration = message.GetFloat(2);
+        shape = message.GetInt(1);
+        size = message.GetFloat(2);
         contrast = message.GetFloat(3);
-        size = message.GetFloat(4);
-        shape = message.GetFloat(5);
+        speed = message.GetFloat(4);
+        acceleration = message.GetFloat(5);
+        trajectory = message.GetInt(6);
+        
+        
+        
         //trajectory = message;
 
         // TODO figure out how to send vectors over OSC
@@ -201,5 +241,18 @@ public class Recorder_script_VR_Hoy : MonoBehaviour {
         osc.Send(message);
     }
 
-    
+    // --- Helper Functions --- //
+    GameObject[] FindObsWithTag(string tag)
+    {
+        GameObject[] foundObs = GameObject.FindGameObjectsWithTag(tag);
+        Array.Sort(foundObs, CompareObNames);
+        return foundObs;
+    }
+
+    int CompareObNames(GameObject x, GameObject y)
+    {
+        return x.name.CompareTo(y.name);
+    }
+
+
 }
