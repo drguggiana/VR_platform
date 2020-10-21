@@ -49,8 +49,8 @@ public class Recorder_script_VR_Hoy : MonoBehaviour {
     private StreamWriter writer;
     private string mouse_data;
     private string target_data;
-    private string arena_corners = "arena_coordinates: ";
     private string header;
+
 
     // Use this for initialization
     void Start () {
@@ -93,7 +93,7 @@ public class Recorder_script_VR_Hoy : MonoBehaviour {
 
         // create the color for the square
         new_color = new Color(color_factor, color_factor, color_factor, 1f);
-        // put it on the square
+        // put it on the square 
         tracking_square.GetComponent<Renderer>().material.SetColor("_Color", new_color);
         // Define the color for the next iteration (switch it)
         if (color_factor > 0.0f)
@@ -160,20 +160,25 @@ public class Recorder_script_VR_Hoy : MonoBehaviour {
     void LogSceneParams()
     {
         // handle arena corners
-        string.Concat(arena_corners, "[");
+        string arena_corners = "arena_coordinates: ";
+        arena_corners = string.Concat(arena_corners, '[');
+
         foreach (GameObject corner in FindObsWithTag("Corner"))
         {
-            string.Concat(arena_corners, "[", corner.transform.position.x.ToString(), ",", corner.transform.position.z.ToString(), "]", ",");
+            Vector3 corner_position = corner.transform.position;
+
+            arena_corners = string.Concat(arena_corners, '[', corner_position.x.ToString(), ',', corner_position.z.ToString(), ']', ',');
         }
-        string.Concat(arena_corners, "]");
+        arena_corners = string.Concat(arena_corners, ']');
         writer.WriteLine(arena_corners);
 
         // handle any obstacles in the arena. This only logs the centroid of the obstacle
         foreach (GameObject obstacle in FindObsWithTag("Obstacle"))
         {
-            string obstacle_position = string.Concat(obstacle.name.ToString(), ": ");
-            string.Concat(obstacle_position, "[", obstacle.transform.position.x.ToString(), ",", obstacle.transform.position.z.ToString(), "]");
-            writer.WriteLine(obstacle_position);
+            string this_obstacle = string.Concat(obstacle.name.ToString().ToLower(), ": ");
+            Vector3 obstacle_position = obstacle.transform.position;
+            this_obstacle = string.Concat(this_obstacle, '[', obstacle_position.x.ToString(), ',', obstacle_position.z.ToString(), ']');
+            writer.WriteLine(this_obstacle);
         }
 
         // once done, write a blank line
