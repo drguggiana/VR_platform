@@ -9,6 +9,7 @@ TagManager:
   - Corner
   - Starts
   - Obstacle
+  - Target
   layers:
   - Default
   - TransparentFX
