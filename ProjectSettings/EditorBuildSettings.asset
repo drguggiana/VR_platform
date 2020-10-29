@@ -8,7 +8,7 @@ EditorBuildSettings:
   - enabled: 0
     path: 
     guid: 00000000000000000000000000000000
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/VR_preyCapture.unity
     guid: fb8649a3944dc004d884061d27dd169a
   - enabled: 0
