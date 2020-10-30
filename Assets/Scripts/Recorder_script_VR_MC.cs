@@ -8,7 +8,6 @@ using System;
 //[ExecuteInEditMode]
 public class Recorder_script_VR_MC : MonoBehaviour
 {
-
     // Streaming client
     public OptitrackStreamingClient StreamingClient;
 
@@ -102,7 +101,6 @@ public class Recorder_script_VR_MC : MonoBehaviour
 
 
         // --- Handle mouse and cricket data --- //
-        // This works for a single VR cricket
 
         // Process the mouse position as the other scripts
         OptitrackRigidBodyState rbState = StreamingClient.GetLatestRigidBodyState(RigidBodyId);

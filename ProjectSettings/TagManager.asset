@@ -6,6 +6,10 @@ TagManager:
   tags:
   - Wall
   - Cricket
+  - Corner
+  - Starts
+  - Obstacle
+  - Target
   layers:
   - Default
   - TransparentFX

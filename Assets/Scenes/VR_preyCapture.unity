@@ -548,6 +548,16 @@ Prefab:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114179308805632834, guid: d70f71858d5f305499855a8f50d34728,
+        type: 2}
+      propertyPath: RigidBodyId
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 114740377378727684, guid: d70f71858d5f305499855a8f50d34728,
+        type: 2}
+      propertyPath: cubemapSize
+      value: 1024
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d70f71858d5f305499855a8f50d34728, type: 2}
   m_IsPrefabAsset: 0
@@ -650,9 +660,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f47d9fa8e3c7b940ae29e1c6cd1beae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inPort: 2324
-  outIP: 127.0.0.1
-  outPort: 0
+  inPort: 6969
+  outIP: 127.0.0.2
+  outPort: 6161
 --- !u!4 &1005790156
 Transform:
   m_ObjectHideFlags: 0
@@ -732,6 +742,11 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!1 &1364180914 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1464968447097328, guid: e45037862af4ac641a9a461284ec0001,
+    type: 2}
+  m_PrefabInternal: {fileID: 832616583}
 --- !u!1 &1465439237
 GameObject:
   m_ObjectHideFlags: 0
@@ -873,10 +888,6 @@ Prefab:
     - target: {fileID: 4461193020444080, guid: 874feec725d7b0441af234aa63af0d97, type: 2}
       propertyPath: m_RootOrder
       value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 1675966990905054, guid: 874feec725d7b0441af234aa63af0d97, type: 2}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 874feec725d7b0441af234aa63af0d97, type: 2}
