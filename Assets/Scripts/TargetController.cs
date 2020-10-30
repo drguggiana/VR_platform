@@ -6,21 +6,20 @@ using System;
 //[ExecuteInEditMode]
 public class TargetController : MonoBehaviour {
 
+    // Public variables for trial structure, and target/screen setup
     public GameObject player;
-
-    // Variables for testing properties that are manipulated
-    public int targetIndex = 2;    // Index of the child target to be tested
-    public float speed = 0.5f;
-    public float acceleration = 0.1f;
-    public float contrast = 1.0f;     // [0-1] 1 is full contrast and 0 is no contrast
-    public float scale = 0.025f;     // This is proprtional to radius of a circle
-    public int trajectory = 0;
+    public Material screenMaterial;
+    public Vector4 screenColor = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);     // white
+    public Vector4 targetColor = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);     // black
 
     public bool trialDone = false;
     public bool inTrial = false;
 
-    //public GameObject screen;
-    public Material screen_material;
+    public int targetIndex = 2;    // Index of the child target to be tested
+    public float speed = 0.5f;
+    public float acceleration = 0.1f;
+    public int trajectory = 0;
+    public Vector3 scale = new Vector3(0.025f, 0f, 0.025f);
 
     private bool atDestination = false;
     private Vector3 currentPosition;
@@ -30,16 +29,12 @@ public class TargetController : MonoBehaviour {
     private UnityEngine.AI.NavMeshAgent agent;
     private Transform[] StartEnd;
 
-    private Color target_color;
-    private Color screen_color;
 
     // Use this for initialization
     void Start()
     {
-        // Get the values for the color of the screens
-        //Renderer rend;
-        //rend = screen.GetComponent<Renderer>();
-        screen_color = screen_material.GetColor("_Color");
+        // Set defauly screen material color
+        screenMaterial.SetColor("_Color", screenColor);
 
         // get the navigation agent of the target (independent of target shape)
         agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
@@ -59,33 +54,18 @@ public class TargetController : MonoBehaviour {
             // If at destination, handle trial end parameters
             if (atDestination)
             {
-                AtTrialEnd();
+                TrialEnd();
             }
         }
     }
 
     public void SetupNewTrial()
-    {  
-        // Set booleans
-        inTrial = true;
+    {
         trialDone = false;
+        inTrial = true;
 
-        // set target object active and deactivate all other children
-        SetTargetActive(targetIndex);
-
-        // --- Set target appearance variables --- //
-        target_color = CalculateTargetColor();
-        targetObj.GetComponent<Renderer>().material.SetColor("_Color", target_color);
-
-        // Scale gets set depending on what object is being shown
-        if (targetIndex == 0)
-        {
-            targetObj.transform.localScale = new Vector3(scale, 0.0f, 2.0f * scale);
-        }
-        else
-        {
-            targetObj.transform.localScale = new Vector3(scale, 0.0f, scale);
-        }
+        // --- Set VR screen appearance variables --- //
+        screenMaterial.SetColor("_Color", (Color)screenColor);
 
         // --- set NavMeshAgent kinematic variables --- //
 
@@ -100,24 +80,30 @@ public class TargetController : MonoBehaviour {
         // Set speed and acceleration
         agent.speed = speed;
         agent.acceleration = acceleration;
-        
-        Debug.Log("Trial Start");
+
+        // --- Set target appearance variables --- //
+
+        // set target object active and deactivate all other children
+        SetTargetActive(targetIndex);
+
+        // set target color
+        targetObj.GetComponent<Renderer>().material.SetColor("_Color", (Color)targetColor);
+
+        // Scale gets set depending on what object is being shown
+        if (targetIndex == 0 & scale.x == scale.z)
+        {
+            // If we are passing an ellipse, we need to scale the z axis by 2
+            targetObj.transform.localScale = (Vector3.Scale(scale, new Vector3(1f, 1f, 2f)));
+        }
+        else
+        {
+            // Otherwise, we just use the given scale
+            targetObj.transform.localScale = scale;
+        }
     }
 
-    Color CalculateTargetColor()
-    {
-        // Assumes a typical target is pure black, and on a light background. 
 
-        // Get dynamic range. Alpha component should be 0 after subtraction.
-        Color screen_target_diff = screen_color - Color.black;    
-        // Multiply the difference by the contrast scaling factor 
-        screen_target_diff = screen_target_diff * contrast;
-        // Target material color is the screen color minus the scaled difference
-        Color color = screen_color - screen_target_diff;
-        return color;
-    }
-
-    void AtTrialEnd()
+    void TrialEnd()
     {
         // What to do when a trial is over
         trialDone = true;

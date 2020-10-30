@@ -43,8 +43,9 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
     // Variables for properties of the target that are manipulated
     private int trial_num = 0;
     private int shape;
-    private float scale;    
-    private float contrast;
+    private Vector3 scale;    
+    private Vector4 screen_color;
+    private Vector4 target_color;
     private float speed;
     private float acceleration;
     private int trajectory;
@@ -241,18 +242,20 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
     void OnReceiveTrialStart (OscMessage message)
     {
         // Parse the values for trial setup
-        trial_num = message.GetInt(0);
-        shape = message.GetInt(1);          // This is an integer representing the indexof the child object of Target obj in scene
-        scale = message.GetFloat(2);        // This is proprtional to radius of a circle
-        contrast = message.GetFloat(3);     // This comes as a percentage value, with 0 being no contrast, and 1 being full contrast
-        speed = message.GetFloat(4);
-        acceleration = message.GetFloat(5);
-        trajectory = message.GetInt(6);
+        trial_num = int.Parse(message.values[0].ToString());
+        shape = int.Parse(message.values[1].ToString());          // This is an integer representing the index of the child object of Target obj in scene
+        scale = StringToVector3(message.values[2].ToString());
+        screen_color = StringToVector4(message.values[3].ToString());
+        target_color = StringToVector4(message.values[4].ToString());
+        speed = float.Parse(message.values[5].ToString());
+        acceleration = float.Parse(message.values[6].ToString());
+        trajectory = int.Parse(message.values[7].ToString());
 
         // Set values in TrialHandler for the next trial
         targetController.targetIndex = shape;
         targetController.scale = scale;
-        targetController.contrast = contrast;
+        targetController.screenColor = screen_color;
+        targetController.targetColor = target_color;
         targetController.speed = speed;
         targetController.acceleration = acceleration;
         targetController.trajectory = trajectory;
@@ -270,6 +273,49 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
         inTrial = targetController.inTrial;
         trialDone = targetController.trialDone;
 
+    }
+
+    Vector3 StringToVector3(string sVector)
+    {
+        // Taken from user Praveen Ramanayake at https://stackoverflow.com/questions/30959419/converting-string-to-vector-in-unity
+        // Remove the parentheses
+        if (sVector.StartsWith("(") && sVector.EndsWith(")"))
+        {
+            sVector = sVector.Substring(1, sVector.Length - 2);
+        }
+
+        // split the items
+        string[] sArray = sVector.Split(',');
+
+        // store as a Vector3
+        Vector3 result = new Vector3(
+            float.Parse(sArray[0]),
+            float.Parse(sArray[1]),
+            float.Parse(sArray[2]));
+
+        return result;
+    }
+
+    Vector4 StringToVector4(string sVector)
+    {
+        // Modified from user Praveen Ramanayake at https://stackoverflow.com/questions/30959419/converting-string-to-vector-in-unity
+        // Remove the parentheses
+        if (sVector.StartsWith("(") && sVector.EndsWith(")"))
+        {
+            sVector = sVector.Substring(1, sVector.Length - 2);
+        }
+
+        // split the items
+        string[] sArray = sVector.Split(',');
+
+        // store as a Vector3
+        Vector4 result = new Vector4(
+            float.Parse(sArray[0]),
+            float.Parse(sArray[1]),
+            float.Parse(sArray[2]),
+            float.Parse(sArray[3]));
+
+        return result;
     }
 
     void SendTrialEnd ()
