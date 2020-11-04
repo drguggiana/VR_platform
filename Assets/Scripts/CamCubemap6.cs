@@ -52,6 +52,7 @@ public class CamCubemap6 : MonoBehaviour
             cam.transform.position = playerTrans.position;
             //define the near clip plane of the camera
             cam.nearClipPlane = 0.03f;
+            //cam.nearClipPlane = 0.000001f;
             //define the far clip plane
             cam.farClipPlane = 10; // don't render very far into cubemap
             //define the field of view, 90 for cubemapping

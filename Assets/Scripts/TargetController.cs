@@ -92,8 +92,9 @@ public class TargetController : MonoBehaviour {
         // Scale gets set depending on what object is being shown
         if (targetIndex == 0 & scale.x == scale.z)
         {
-            // If we are passing an ellipse, we need to scale the z axis by 2
-            targetObj.transform.localScale = (Vector3.Scale(scale, new Vector3(1f, 1f, 2f)));
+            // If we are passing an ellipse, we need to scale the x an y axes by 0.5
+            // This preserves a 2:1 major:minor axis ratio, with the major axis being the length set by the scaling factor 
+            targetObj.transform.localScale = (Vector3.Scale(scale, new Vector3(0.5f, 0.5f, 1f)));
         }
         else
         {

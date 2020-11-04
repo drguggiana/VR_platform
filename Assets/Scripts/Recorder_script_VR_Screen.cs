@@ -73,8 +73,8 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
         reference = OptitrackHiResTimer.Now();
 
         // Set up the camera (so it doesn't clip objects too close to the mouse)
-        Camera cam = GetComponentInChildren<Camera>();
-        cam.nearClipPlane = 0.000001f;
+        //Camera cam = GetComponentInChildren<Camera>();
+        //cam.nearClipPlane = 0.000001f;
 
         // Set the writer
         writer = new StreamWriter(Paths.recording_path, true);
@@ -115,7 +115,7 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
                 counter = 0;
             }
         }
-        
+
 
         /* 
          * Below this point, all updates are done on every frame. 
@@ -123,7 +123,7 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
          */
 
         // --- Handle the tracking square --- //
-
+        //counter++;
         //if (counter % 120 == 0)
         //{
             // create the color for the square
@@ -140,7 +140,7 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
                 color_factor = 1.0f;
             }
         //}
-      
+
 
         // --- Handle mouse and target data --- //
 
