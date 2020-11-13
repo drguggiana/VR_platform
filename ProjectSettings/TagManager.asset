@@ -7,10 +7,11 @@ TagManager:
   - Wall
   - Cricket
   - Corner
-  - Starts
   - Obstacle
   - Target
   - Screen
+  - Start2D
+  - Start3D
   layers:
   - Default
   - TransparentFX
