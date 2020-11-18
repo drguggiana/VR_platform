@@ -72,6 +72,9 @@ public class Recorder_script_VR_MC : MonoBehaviour
         // Get cricket object array sorted by name/number
         CricketObjs = FindObsWithTag("Cricket");
 
+        // Write initial parameters and header to file
+        LogSceneParams();
+        AssembleHeader();
     }
 
     // Update is called once per frame
@@ -158,6 +161,65 @@ public class Recorder_script_VR_MC : MonoBehaviour
 
     }
 
+    // Functions for writing header of data file
+    void LogSceneParams()
+    {
+        // handle arena corners
+        string[] corners = new string[4];
+
+        int i = 0;
+        foreach (GameObject corner in FindObsWithTag("Corner"))
+        {
+            Vector3 corner_position = corner.transform.position;
+            object[] corner_coord = { corner_position.x, corner_position.z };
+            string arena_corner = string.Concat("[", string.Join(",", corner_coord), "]");
+            corners[i] = arena_corner;
+            i++;
+        }
+
+        string arena_corners_string = string.Concat("arena_corners ", "[", string.Join(",", corners), "]");
+        writer.WriteLine(arena_corners_string);
+
+        // handle any obstacles in the arena. This only logs the centroid of the obstacle
+        foreach (GameObject obstacle in FindObsWithTag("Obstacle"))
+        {
+            string this_obstacle = obstacle.name.ToString().ToLower();
+            Vector3 obstacle_position = obstacle.transform.position;
+            object[] obstacle_coords = { obstacle_position.x, obstacle_position.y, obstacle_position.z };
+            this_obstacle = string.Concat(this_obstacle, " [", string.Join(",", obstacle_coords), "]");
+            writer.WriteLine(this_obstacle);
+        }
+
+        // once done, write a blank line
+        writer.WriteLine(string.Empty);
+    }
+
+    void AssembleHeader()
+    {
+        string[] mouse_template = {"mouse_x_m", "mouse_z_m", "mouse_y_m",
+                                   "mouse_xrot_m", "mouse_zrot_m", "mouse_yrot_m"};
+
+        string[] cricket_template = {"_x", "_z", "_y",
+                                     "_xrot", "_zrot", "_yrot",
+                                     "_speed", "_state", "_motion", "_encounter"};
+
+        int numCrickets = CricketObjs.Length;
+        List<string> cricket_cols = new List<string>(); ;
+
+        // Assemble the cricket string depending on how many VR crickets there are
+        for (int i=0; i < numCrickets; i++)
+        {
+            string vcricket = "vcricket_" + i;
+            foreach (string ct in cricket_template)
+            {
+                cricket_cols.Add(vcricket + ct);
+            }
+        }
+        cricket_cols.ToArray();
+
+        object[] header = {"time_m", "trial_num", mouse_template, cricket_cols, "color_factor"};
+        writer.WriteLine(string.Join(", ", header));
+    }
 
     GameObject[] FindObsWithTag(string tag)
     {
