@@ -230,8 +230,6 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
     void AssembleHeader ()
     {
         string[] header = {"time_m", "trial_num",
-                            "mouse_y_m", "mouse_z_m", "mouse_x_m",
-                            "mouse_yrot_m", "mouse_zrot_m", "mouse_xrot_m",
                             "target_y_m", "target_z_m", "target_x_m",
                             "color_factor"};
         writer.WriteLine(string.Join(", ", header));
