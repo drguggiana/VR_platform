@@ -61,7 +61,7 @@ public class TargetController : MonoBehaviour {
         // For debugging only
         #if (UNITY_EDITOR)
         counter++;
-        if (counter % 300 == 0)
+        if (counter % 500 == 0)
         {
             SetupNewTrial();
         }
@@ -145,7 +145,7 @@ public class TargetController : MonoBehaviour {
         agent.updatePosition = true;
         
         // --- Set trajectory variables --- //
-        // However, if the agent is operating on a sinusoidal path, make acceleration 0
+        // If the agent is operating on a sinusoidal path, make acceleration 0 so we can manually control the motion
         if (trajectory == 1 || trajectory == 3)
         {
             agent.acceleration = 0;
@@ -161,7 +161,16 @@ public class TargetController : MonoBehaviour {
         SetTargetActive(targetIndex);
 
         // set target color
-        targetObj.GetComponent<Renderer>().material.SetColor("_Color", (Color)targetColor);
+        try
+        {
+            targetObj.GetComponent<Renderer>().material.SetColor("_Color", (Color)targetColor);
+        }
+        catch
+        {
+            Transform current = targetObj.transform.Find("Body");
+            current = current.Find("grille_geo");
+            current.GetComponent<Renderer>().material.SetColor("_Color", (Color)targetColor);
+        }
 
         // Scale gets set depending on what object is being shown
         if ((targetIndex == 0 || targetIndex == 3) & (scale.x == scale.z))
