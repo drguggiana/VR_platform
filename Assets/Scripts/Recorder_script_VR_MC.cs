@@ -196,7 +196,7 @@ public class Recorder_script_VR_MC : MonoBehaviour
             string this_obstacle = obstacle.name.ToString().ToLower();
             Vector3 obstacle_position = obstacle.transform.position;
             object[] obstacle_coords = { obstacle_position.z, obstacle_position.x, obstacle_position.y };
-            this_obstacle = string.Concat(this_obstacle + "obs_x_y_z: ", " [", string.Join(", ", obstacle_coords), "]");
+            this_obstacle = string.Concat(this_obstacle + "_obs_x_y_z: ", " [", string.Join(", ", obstacle_coords), "]");
             writer.WriteLine(this_obstacle);
         }
 
@@ -229,7 +229,7 @@ public class Recorder_script_VR_MC : MonoBehaviour
         string mouse_string = string.Join(", ", mouse_template);
         string cricket_string = string.Join(", ", cricket_cols);
 
-        object[] header = {"time_m", "trial_num", mouse_string, cricket_string, "color_factor"};
+        object[] header = {"time_m", mouse_string, cricket_string, "color_factor"};
         writer.WriteLine(string.Join(", ", header));
     }
 

@@ -77,6 +77,7 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
         //cam.nearClipPlane = 0.000001f;
 
         // Set the writer
+        Paths.CheckFileExistence();
         writer = new StreamWriter(Paths.recording_path, true);
 
         // Write initial parameters and header to file
