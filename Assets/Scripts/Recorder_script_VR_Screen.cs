@@ -73,10 +73,11 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
         reference = OptitrackHiResTimer.Now();
 
         // Set up the camera (so it doesn't clip objects too close to the mouse)
-        Camera cam = GetComponentInChildren<Camera>();
-        cam.nearClipPlane = 0.000001f;
+        //Camera cam = GetComponentInChildren<Camera>();
+        //cam.nearClipPlane = 0.000001f;
 
         // Set the writer
+        Paths.CheckFileExistence();
         writer = new StreamWriter(Paths.recording_path, true);
 
         // Write initial parameters and header to file
@@ -115,7 +116,7 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
                 counter = 0;
             }
         }
-        
+
 
         /* 
          * Below this point, all updates are done on every frame. 
@@ -123,7 +124,7 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
          */
 
         // --- Handle the tracking square --- //
-
+        //counter++;
         //if (counter % 120 == 0)
         //{
             // create the color for the square
@@ -140,7 +141,7 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
                 color_factor = 1.0f;
             }
         //}
-      
+
 
         // --- Handle mouse and target data --- //
 
@@ -204,13 +205,13 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
         foreach (GameObject corner in FindObsWithTag("Corner"))
         {
             Vector3 corner_position = corner.transform.position;
-            object[] corner_coord = {corner_position.x, corner_position.z};
-            string arena_corner = string.Concat("[", string.Join(",", corner_coord), "]");
+            object[] corner_coord = {corner_position.z, corner_position.x};
+            string arena_corner = "[" + string.Join(", ", corner_coord) + "]";
             corners[i] = arena_corner;
             i++;
         }
 
-        string arena_corners_string = string.Concat("arena_corners ", "[", string.Join(",", corners), "]");
+        string arena_corners_string = string.Concat("arena_corners_x_y: ", "[", string.Join(",", corners), "]");
         writer.WriteLine(arena_corners_string);
 
         // handle any obstacles in the arena. This only logs the centroid of the obstacle
@@ -218,8 +219,8 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
         {
             string this_obstacle = obstacle.name.ToString().ToLower();
             Vector3 obstacle_position = obstacle.transform.position;
-            object[] obstacle_coords = {obstacle_position.x, obstacle_position.y, obstacle_position.z};
-            this_obstacle = string.Concat(this_obstacle, " [", string.Join(",", obstacle_coords), "]");
+            object[] obstacle_coords = {obstacle_position.z, obstacle_position.x, obstacle_position.y};
+            this_obstacle = string.Concat(this_obstacle + "obs_x_y_z: ", " [", string.Join(", ", obstacle_coords), "]");
             writer.WriteLine(this_obstacle);
         }
 
@@ -230,9 +231,7 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
     void AssembleHeader ()
     {
         string[] header = {"time_m", "trial_num",
-                            "mouse_x_m", "mouse_y_m", "mouse_z_m",
-                            "mouse_xrot_m", "mouse_yrot_m", "mouse_zrot_m",
-                            "target_x_m", "target_y_m", "target_z_m",
+                            "target_y_m", "target_z_m", "target_x_m",
                             "color_factor"};
         writer.WriteLine(string.Join(", ", header));
     }

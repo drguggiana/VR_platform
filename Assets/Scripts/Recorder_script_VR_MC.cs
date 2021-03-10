@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using System.Linq;
 using System;
 
 
@@ -42,10 +43,10 @@ public class Recorder_script_VR_MC : MonoBehaviour
     private float Time_stamp;
 
     // Writer for saving data
-    string mouse_data;
-    string this_cricket;
-    string cricket_data;
     private StreamWriter writer;
+    private string mouse_string;
+    private string cricket_string = "";
+    private string this_cricket;
 
     private int count = 0;
 
@@ -67,11 +68,15 @@ public class Recorder_script_VR_MC : MonoBehaviour
         cam.nearClipPlane = 0.000001f;
 
         // Set the writer
+        Paths.CheckFileExistence();
         writer = new StreamWriter(Paths.recording_path, true);
 
         // Get cricket object array sorted by name/number
         CricketObjs = FindObsWithTag("Cricket");
 
+        // Write initial parameters and header to file
+        LogSceneParams();
+        AssembleHeader();
     }
 
     // Update is called once per frame
@@ -125,8 +130,8 @@ public class Recorder_script_VR_MC : MonoBehaviour
         }
 
         // Write the mouse data to a string
-        mouse_data = string.Concat(Mouse_Position.x.ToString(), ',', Mouse_Position.y.ToString(), ',', Mouse_Position.z.ToString(), ',',
-                                   Mouse_Orientation.x.ToString(), ',', Mouse_Orientation.y.ToString(), ',', Mouse_Orientation.z.ToString());
+        object[] mouse_data = { Mouse_Position.x, Mouse_Position.y, Mouse_Position.z, Mouse_Orientation.x, Mouse_Orientation.y, Mouse_Orientation.z };
+        mouse_string = string.Join(", ", mouse_data);
 
         // Loop through the VR Crickets to get their data
         foreach (GameObject cricket_obj in CricketObjs)
@@ -142,22 +147,91 @@ public class Recorder_script_VR_MC : MonoBehaviour
             encounter = cricket_obj.GetComponent<Animator>().GetInteger("in_encounter");
 
             // Concatenate strings for this cricket object, and add to all cricket string
-            this_cricket = String.Concat(Cricket_Position.x.ToString(), ',', Cricket_Position.y.ToString(), ',', Cricket_Position.z.ToString(), ',',
-                                         Cricket_Orientation.x.ToString(), ',', Cricket_Orientation.y.ToString(), ',', Cricket_Orientation.z.ToString(), ',',
-                                         speed.ToString(), ',', state.ToString(), ',', motion.ToString(), ',', encounter.ToString(), ',');
-            cricket_data = String.Concat(cricket_data, this_cricket);
-            
+            object[] cricket_data = {Cricket_Position.x, Cricket_Position.y, Cricket_Position.z,
+                                     Cricket_Orientation.x, Cricket_Orientation.y, Cricket_Orientation.z,
+                                     speed, state, motion, encounter };
+
+            this_cricket = string.Join(", ", cricket_data);
+
+            List<string> strArray = new List<string> { cricket_string, this_cricket };
+
+            // Remove leading comma
+            cricket_string = string.Join(", ", strArray.Where(s => !string.IsNullOrEmpty(s)));
+
         }
-            
+
 
         // --- Data Saving --- //
 
         // Write the mouse and VR cricket info
-        writer.WriteLine(string.Concat(Time_stamp.ToString(), ',', mouse_data, ',', cricket_data, color_factor.ToString()));
-        cricket_data = "";
+        object[] all_data = { Time_stamp, mouse_string, cricket_string, color_factor };
+        writer.WriteLine(string.Join(", ", all_data));
+
+        cricket_string = "";
 
     }
 
+    // Functions for writing header of data file
+    void LogSceneParams()
+    {
+        // handle arena corners
+        string[] corners = new string[4];
+
+        int i = 0;
+        foreach (GameObject corner in FindObsWithTag("Corner"))
+        {
+            Vector3 corner_position = corner.transform.position;
+            object[] corner_coord = { corner_position.z, corner_position.x };
+            string arena_corner = "[" + string.Join(", ", corner_coord) + "]";
+            corners[i] = arena_corner;
+            i++;
+        }
+
+        string arena_corners_string = string.Concat("arena_corners_x_y: ", "[", string.Join(",", corners), "]");
+        writer.WriteLine(arena_corners_string);
+
+        // handle any obstacles in the arena. This only logs the centroid of the obstacle
+        foreach (GameObject obstacle in FindObsWithTag("Obstacle"))
+        {
+            string this_obstacle = obstacle.name.ToString().ToLower();
+            Vector3 obstacle_position = obstacle.transform.position;
+            object[] obstacle_coords = { obstacle_position.z, obstacle_position.x, obstacle_position.y };
+            this_obstacle = string.Concat(this_obstacle + "_obs_x_y_z: ", " [", string.Join(", ", obstacle_coords), "]");
+            writer.WriteLine(this_obstacle);
+        }
+
+        // once done, write a blank line
+        writer.WriteLine(string.Empty);
+    }
+
+    void AssembleHeader()
+    {
+        string[] mouse_template = {"mouse_y_m", "mouse_z_m", "mouse_x_m",
+                                   "mouse_yrot_m", "mouse_zrot_m", "mouse_xrot_m"};
+
+        string[] cricket_template = {"_y", "_z", "_x",
+                                     "_yrot", "_zrot", "_xrot",
+                                     "_speed", "_state", "_motion", "_encounter"};
+
+        int numCrickets = CricketObjs.Length;
+        List<string> cricket_cols = new List<string>(); ;
+
+        // Assemble the cricket string depending on how many VR crickets there are
+        for (int i=0; i < numCrickets; i++)
+        {
+            string vcricket = "vrcricket_" + i;
+            foreach (string ct in cricket_template)
+            {
+                cricket_cols.Add(vcricket + ct);
+            }
+        }
+
+        string mouse_string = string.Join(", ", mouse_template);
+        string cricket_string = string.Join(", ", cricket_cols);
+
+        object[] header = {"time_m", mouse_string, cricket_string, "color_factor"};
+        writer.WriteLine(string.Join(", ", header));
+    }
 
     GameObject[] FindObsWithTag(string tag)
     {
