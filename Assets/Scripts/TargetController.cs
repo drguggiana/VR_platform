@@ -14,27 +14,30 @@ public class TargetController : MonoBehaviour {
 
     public bool trialDone = false;
     public bool inTrial = false;
+    private bool startTrial = false;
 
     public int targetIndex = 2;    // Index of the child target to be tested
     public float speed = 0.5f;
     public float acceleration = 0.1f;
     public int trajectory = 0;
+    public int start_delta_heading = 45;
     public Vector3 scale = new Vector3(0.025f, 0f, 0.025f);
 
     // Public variables for the NavMesh Groups to be manipulated
-    public GameObject VScreens;
-    public GameObject NavMeshes_VScreen;
+    // public GameObject VScreens;
+    // public GameObject NavMeshes_VScreen;
 
     // private variables for handling motion
     private bool atDestination = false;
     private Vector3 currentPosition;
     private Vector3 localUp;
+    private Vector3 globalUp = Vector3.up;
 
     private Transform targetObj;
     private UnityEngine.AI.NavMeshAgent agent;
     private Transform[] StartEnd;
-    private GameObject[] StartPos2D;
-    private GameObject[] StartPos3D;
+    private GameObject[] StartPosWall;
+    private GameObject[] StartPosFloor;
     private float sinePeriod;
     private float distanceRemaining;
 
@@ -51,8 +54,8 @@ public class TargetController : MonoBehaviour {
 
         // Find allocated starting poitns for paths. This is sorted according to 
         // the position conventions established for DLC
-        StartPos2D = FindObsWithTag("Start2D");
-        StartPos3D = FindObsWithTag("Start3D");
+        StartPosWall = FindObsWithTag("StartWall");
+        StartPosFloor = FindObsWithTag("StartFloor");
     }
 
     // Update is called once per frame
@@ -61,13 +64,19 @@ public class TargetController : MonoBehaviour {
         // For debugging only
         #if (UNITY_EDITOR)
         counter++;
-        if (counter % 500 == 0)
+        if ((counter % 500 == 0))
         {
             SetupNewTrial();
         }
         #endif
 
-        if (inTrial == true)
+        if (!startTrial)
+        {
+            // Wait until the mouse is facing the target starting point to begin the trial
+            CheckPlayerTargetAngle();
+        }
+
+        if (inTrial)
         {
 
             // Check if at destination
@@ -83,22 +92,22 @@ public class TargetController : MonoBehaviour {
             switch (trajectory)
             {
                 case 0:
-                    // 2D linear motion. Handled by NavMeshAgent, so just pass
+                    // Linear motion along wall. Handled by NavMeshAgent, so just pass
                     break;
                 case 1:
-                    // 2D sine
-                    Sine2D();
+                    // Sinusoidal motion along wall
+                    SineWall();
                     break;
                 case 2:
-                    // 3D linear motion. Handled by NavMeshAgent, so just pass
+                    // Linear motion along arena diagonal. Handled by NavMeshAgent, so just pass
                     break;
                 case 3:
-                    // 3D horizontal sine
-                    SineHorz3D();
+                    // Horizontal sinusoidal motion along arena diagonal
+                    SineHorzDiag();
                     break;
                 case 4:
-                    // 3D vertical sine
-                    SineVert3D();
+                    // Vertical sinusoidal motion along arena diagonal
+                    SineVertDiag();
                     break;
                 default:
                     break;
@@ -110,55 +119,63 @@ public class TargetController : MonoBehaviour {
         }
     }
 
+    // -- Trial Setup Functions -- //
     public void SetupNewTrial()
     {
+
         trialDone = false;
-        inTrial = true;
+        startTrial = false;
 
-        // --- Set VR screen appearance variables --- //
-        screenMaterial.SetColor("_Color", (Color)screenColor);
+        // For this trial, find start and end points of the target trajectory
+        StartEnd = SelectStartEndPoints(trajectory);
 
-        // --- Set the right NavMesh --- //
-        SetNavMeshActive(trajectory);
+        // Set background appearance
+        SetupBackgroundAppearance();
 
-        // For this trial, find start and end points of the stimulus
-        if (trajectory >= 2)
-        {
-            StartEnd = StartEndPoints(StartPos3D);
-        }
-        else
-        {
-            StartEnd = StartEndPoints(StartPos2D);
-        }
-
-        // --- set NavMeshAgent kinematic variables --- //
-
-        // Move the agent to the starting position and set end point
-        agent.Warp(StartEnd[0].position);
-        agent.SetDestination(StartEnd[1].position);
-        // Get local normal vector based on agent and make the agent look there
-        localUp = agent.transform.up;
-        transform.LookAt(agent.destination, localUp);
-        // Set speed and acceleration
-        agent.speed = speed;
-        agent.acceleration = acceleration;
-        agent.updatePosition = true;
+        // Set kinematic variables for target
+        SetupTargetKinematics();
         
         // --- Set trajectory variables --- //
         // If the agent is operating on a sinusoidal path, make acceleration 0 so we can manually control the motion
-        if (trajectory == 1 || trajectory == 3)
+        if (trajectory == 1 || trajectory >= 3)
         {
             agent.acceleration = 0;
             agent.updatePosition = false;
         }
 
         // If we end up using a sinusoidal path, find the temporal period of the motion
-        sinePeriod = 2f * (float)Math.PI / (Vector3.Distance(StartEnd[1].position, StartEnd[0].position) / speed);
+        sinePeriod = 2.0f * (float)Math.PI / (Vector3.Distance(StartEnd[1].position, StartEnd[0].position) / speed);
 
         // --- Set target appearance variables --- //
+        SetupTargetAppearance(targetIndex);
 
+    }
+
+    void SetupBackgroundAppearance()
+    {
+        screenMaterial.SetColor("_Color", (Color)screenColor);
+    }
+
+    void SetupTargetKinematics()
+    {
+        // Move the agent to the starting position and set end point
+        agent.Warp(StartEnd[0].position);
+        agent.SetDestination(StartEnd[1].position);
+
+        // Get local normal vector based on agent and make the agent look there
+        localUp = agent.transform.up;
+        transform.LookAt(agent.destination, globalUp);
+
+        // Set speed and acceleration
+        agent.speed = speed;
+        agent.acceleration = acceleration;
+        agent.updatePosition = true;
+    }
+
+    void SetupTargetAppearance(int target_index)
+    {
         // set target object active and deactivate all other children
-        SetTargetActive(targetIndex);
+        SetTargetActive(target_index);
 
         // set target color
         try
@@ -167,6 +184,7 @@ public class TargetController : MonoBehaviour {
         }
         catch
         {
+            // Handle the coloration of a VR cricket
             Transform current = targetObj.transform.Find("Body");
             current = current.Find("grille_geo");
             current.GetComponent<Renderer>().material.SetColor("_Color", (Color)targetColor);
@@ -186,36 +204,62 @@ public class TargetController : MonoBehaviour {
         }
     }
 
-    void TrialEnd()
-    {
-        // What to do when a trial is over
-        trialDone = true;
-        inTrial = false;
-        atDestination = false;
-        targetObj.gameObject.SetActive(false);
-        targetObj = null;
-    }
-
-    void SetNavMeshActive(int trajectory_type)
-    {
-        if (trajectory_type < 2)
-        {
-            VScreens.SetActive(true);
-            NavMeshes_VScreen.SetActive(false);
-        }
-        else
-        {
-            VScreens.SetActive(false);
-            NavMeshes_VScreen.SetActive(true);
-        }
-    }
-
     void SetTargetActive(int targetIdx)
     {
         // Activate selected target
         targetObj = transform.GetChild(targetIdx);
         targetObj.gameObject.SetActive(true);
     }
+
+    // -- Trial Control Flow Functions -- //
+
+    void CheckPlayerTargetAngle()
+    {
+        // Get the angle between the target starting position and the current player position
+
+        Vector3 dir = (StartEnd[0].position - player.transform.position).normalized;
+
+        // Dot takes a value between [-1, 1]. 
+        // 1 means parallel, facing same direction, 0 is facing 90 deg from target, -1 is facing away
+        float dot = Vector3.Dot(dir, transform.forward);
+
+        // Since the dot product is on normalized vectors, acos will get us the absolute angle between 
+        // target start and player. Convert to degrees for convenience.
+        float angle = (180f / (float)Math.PI) * (float)Math.Acos(dot);
+
+        // If the mouse is sufficiently facing the target, begin the trial.
+        if (angle <= start_delta_heading)
+        {
+            startTrial = true;
+        }
+    }
+
+    void TrialEnd()
+    {
+        // What to do when a trial is over
+        trialDone = true;
+        inTrial = false;
+        startTrial = false;
+        atDestination = false;
+        targetObj.gameObject.SetActive(false);
+        targetObj = null;
+    }
+
+    //void SetNavMeshActive(int trajectory_type)
+    //{
+    //    if (trajectory_type < 2)
+    //    {
+    //        // VScreens.SetActive(true);
+    //        NavMeshes_VScreen.SetActive(false);
+    //    }
+    //    else
+    //    {
+    //        // VScreens.SetActive(false);
+    //        NavMeshes_VScreen.SetActive(true);
+    //    }
+    //}
+
+    // -- Pathfinding functions -- //
 
     void CheckDestinationReach()
     {
@@ -233,7 +277,19 @@ public class TargetController : MonoBehaviour {
         }
     }
 
-    Transform[] StartEndPoints(GameObject[] StartPos)
+    Transform[] SelectStartEndPoints(int trajectory)
+    {
+        if (trajectory >= 2)
+        {
+            return FindStartEndPoints(StartPosFloor);
+        }
+        else
+        {
+            return FindStartEndPoints(StartPosWall);
+        }
+    }
+
+    Transform[] FindStartEndPoints(GameObject[] StartPos)
     {
         // Find the start and end points for motion. Adapted from 
         // https://answers.unity.com/questions/1236558/finding-nearest-game-object.html
@@ -260,10 +316,10 @@ public class TargetController : MonoBehaviour {
             }
         }
 
-        // Find the end point. This depends on if we are in the 2D or 3D regime
+        // Find the end point. This depends on if we are moving along the wall or along the arena diagonal
         if (trajectory >= 2)
-           
-        {   // Here we are in the 3D regime. Look for opposite corner.
+
+        {   // Here we are moving along the floor. Look for opposite corner.
             closestDistanceSqr = 0.0f;
             foreach (GameObject start in StartPos)
             {
@@ -277,7 +333,7 @@ public class TargetController : MonoBehaviour {
             }
         }
         else
-        {   // Here we are in the 2D regime.
+        {   // Here we are moving along the wall
             // Find the corner with the most similar x coordinate (since we only go along long walls)
             foreach (GameObject start in StartPos)
                 {
@@ -302,9 +358,8 @@ public class TargetController : MonoBehaviour {
 
         return StartEnd;
     }
-
-    // -- Pathfinding functions -- //
-    void Sine2D(int frequency=3, float amplitude=0.002f)
+    
+    void SineWall(int frequency=3, float amplitude=0.002f)
     {
         // Get current position
         Vector3 pos = agent.transform.position;
@@ -328,7 +383,7 @@ public class TargetController : MonoBehaviour {
 
     }
 
-    void SineHorz3D(int frequency = 3, float amplitude = 0.003f)
+    void SineHorzDiag(int frequency = 3, float amplitude = 0.003f)
     {
         // Get current position
         Vector3 pos = agent.transform.position;
@@ -353,7 +408,7 @@ public class TargetController : MonoBehaviour {
         }
     }
 
-    void SineVert3D(int frequency = 3, float amplitude = 0.003f)
+    void SineVertDiag(int frequency = 3, float amplitude = 0.003f)
     {
         // Get current position
         Vector3 pos = agent.transform.position;
