@@ -128,7 +128,7 @@ public class TargetController : MonoBehaviour {
         }
         else
         {
-            StartEnd = StartEndPoints(StartPos3D);
+            StartEnd = StartEndPoints(StartPos2D);
         }
 
         // --- set NavMeshAgent kinematic variables --- //

@@ -2044,7 +2044,7 @@ MonoBehaviour:
   targetIndex: 3
   speed: 0.3
   acceleration: 10
-  trajectory: 3
+  trajectory: 2
   scale: {x: 0.04, y: 0.04, z: 0.04}
   VScreens: {fileID: 1947016329}
   NavMeshes_VScreen: {fileID: 2090626741}
