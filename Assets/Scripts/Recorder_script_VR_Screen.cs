@@ -5,7 +5,7 @@ using System.IO;
 using System;
 
 
-//[ExecuteInEditMode]
+[ExecuteInEditMode]
 public class Recorder_script_VR_Screen : MonoBehaviour {
 
     // Streaming client
@@ -37,7 +37,7 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
     private Vector3 Target_Position;
 
     // Booleans for trial state
-    private bool trialDone = false;
+    private bool trialDone = true;
     private bool inTrial = false;
 
     // Variables for properties of the target that are manipulated
@@ -88,15 +88,15 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
     // Update is called once per frame
     void Update () {
         // For debugging only
-#if (UNITY_EDITOR)
+        #if (UNITY_EDITOR)
             counter++;
-            if (counter % 600 == 0)
+            if ((counter % 1000 == 0) & trialDone)
             {
                 targetController.SetupNewTrial();
                 inTrial = targetController.inTrial;
                 trialDone = targetController.trialDone;
             }
-#endif
+        #endif
 
         // --- If in trial, check if the trial is done yet --- //
         if (inTrial)

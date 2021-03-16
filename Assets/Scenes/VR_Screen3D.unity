@@ -172,6 +172,10 @@ Prefab:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1598314925560860, guid: 0a19a4a1cd63fb84bb52e8d7228ac81f, type: 2}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0a19a4a1cd63fb84bb52e8d7228ac81f, type: 2}
   m_IsPrefabAsset: 0
@@ -511,7 +515,8 @@ Prefab:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 114373754176030258, guid: e45037862af4ac641a9a461284ec0001, type: 2}
   m_SourcePrefab: {fileID: 100100000, guid: e45037862af4ac641a9a461284ec0001, type: 2}
   m_IsPrefabAsset: 0
 --- !u!1 &716728292
@@ -852,6 +857,10 @@ Prefab:
       propertyPath: m_TagString
       value: StartWall
       objectReference: {fileID: 0}
+    - target: {fileID: 1159009824475998, guid: 5cf3027a04b672844b49d8e41e86214a, type: 2}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5cf3027a04b672844b49d8e41e86214a, type: 2}
   m_IsPrefabAsset: 0
@@ -870,12 +879,30 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4715335305075038, guid: e45037862af4ac641a9a461284ec0001,
     type: 2}
   m_PrefabInternal: {fileID: 646342795}
+--- !u!114 &1174232806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1174232804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e21a6630183684a87ea10e949ffd19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  StreamingClient: {fileID: 303620641}
+  osc: {fileID: 1005790155}
+  tracking_square: {fileID: 1460562187}
+  MouseObj: {fileID: 1174232804}
+  RigidBodyId: 4
+  TargetObj: {fileID: 1646230862}
+  targetController: {fileID: 1646230866}
 --- !u!43 &1231629965
 Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: pb_Mesh-88216
+  m_Name: pb_Mesh-1310
   serializedVersion: 9
   m_SubMeshes:
   - serializedVersion: 2
@@ -1245,6 +1272,10 @@ Prefab:
       propertyPath: m_TagString
       value: StartFloor
       objectReference: {fileID: 0}
+    - target: {fileID: 1159009824475998, guid: 5cf3027a04b672844b49d8e41e86214a, type: 2}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5cf3027a04b672844b49d8e41e86214a, type: 2}
   m_IsPrefabAsset: 0
@@ -1298,7 +1329,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 2100000, guid: efb08cfa9ebbb5a4898bff6b3a99cd02, type: 2}
+  - {fileID: 1929426923}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1687,12 +1718,12 @@ MonoBehaviour:
   targetColor: {x: 0, y: 0, z: 0, w: 1}
   trialDone: 0
   inTrial: 0
-  targetIndex: 3
-  speed: 0.3
+  targetIndex: 0
+  speed: 0.1
   acceleration: 10
-  trajectory: 2
-  scale: {x: 0.04, y: 0.04, z: 0.04}
-  NavMeshes_VScreen: {fileID: 2090626741}
+  trajectory: 0
+  start_delta_heading: 45
+  scale: {x: 0.04, y: 0, z: 0.04}
 --- !u!21 &1878364971
 Material:
   serializedVersion: 6
@@ -1839,12 +1870,12 @@ Prefab:
     - target: {fileID: 64462570602564076, guid: f8f2f5ecc37bedb4a89c0de197fc7455,
         type: 2}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 64176517371661836, guid: f8f2f5ecc37bedb4a89c0de197fc7455,
         type: 2}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 64898035224932694, guid: f8f2f5ecc37bedb4a89c0de197fc7455,
         type: 2}
@@ -1891,11 +1922,11 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4862123553999580, guid: f8f2f5ecc37bedb4a89c0de197fc7455, type: 2}
       propertyPath: m_LocalPosition.x
-      value: 0.35
+      value: 0.355
       objectReference: {fileID: 0}
     - target: {fileID: 4862123553999580, guid: f8f2f5ecc37bedb4a89c0de197fc7455, type: 2}
       propertyPath: m_LocalPosition.y
-      value: -0.242
+      value: -0.244
       objectReference: {fileID: 0}
     - target: {fileID: 114930758125814466, guid: f8f2f5ecc37bedb4a89c0de197fc7455,
         type: 2}
@@ -1920,6 +1951,81 @@ Prefab:
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f8f2f5ecc37bedb4a89c0de197fc7455, type: 2}
   m_IsPrefabAsset: 0
+--- !u!21 &1929426923
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: Tracking_material (Instance) (Instance) (Instance) (Instance) (Instance)
+    (Instance) (Instance) (Instance) (Instance) (Instance) (Instance) (Instance) (Instance)
+  m_Shader: {fileID: 10755, guid: 0000000000000000f000000000000000, type: 0}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _BumpScale: 1
+    - _Cutoff: 0.5
+    - _DetailNormalMapScale: 1
+    - _DstBlend: 0
+    - _GlossMapScale: 1
+    - _Glossiness: 0.5
+    - _GlossyReflections: 1
+    - _Metallic: 0
+    - _Mode: 0
+    - _OcclusionStrength: 1
+    - _Parallax: 0.02
+    - _SmoothnessTextureChannel: 0
+    - _SpecularHighlights: 1
+    - _SrcBlend: 1
+    - _UVSec: 0
+    - _ZWrite: 1
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!1001 &2004716871
 Prefab:
   m_ObjectHideFlags: 0
@@ -1963,7 +2069,7 @@ Prefab:
         type: 2}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: 083187d74073e784c85bac65bf5b8bdd, type: 3}
+      objectReference: {fileID: 2100000, guid: b1d9daae1309fe4448d99b36a326593f, type: 2}
     - target: {fileID: 64741446502300940, guid: d75ef5017b51f974eb1141e403d037a3,
         type: 2}
       propertyPath: m_Mesh
@@ -1987,11 +2093,6 @@ Prefab:
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d75ef5017b51f974eb1141e403d037a3, type: 2}
   m_IsPrefabAsset: 0
---- !u!1 &2090626741 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1778756808034354, guid: f8f2f5ecc37bedb4a89c0de197fc7455,
-    type: 2}
-  m_PrefabInternal: {fileID: 1919092148}
 --- !u!1 &2119392117
 GameObject:
   m_ObjectHideFlags: 0

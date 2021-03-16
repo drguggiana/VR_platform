@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-//[ExecuteInEditMode]
+[ExecuteInEditMode]
 public class TargetController : MonoBehaviour {
 
     // Public variables for trial structure, and target/screen setup
@@ -61,22 +61,22 @@ public class TargetController : MonoBehaviour {
     // Update is called once per frame
     void Update () {
 
-        // For debugging only
-        #if (UNITY_EDITOR)
-        counter++;
-        if ((counter % 500 == 0))
-        {
-            SetupNewTrial();
-        }
-        #endif
+        //// For debugging only
+        //#if (UNITY_EDITOR)
+        //counter++;
+        //if ((counter % 500 == 0))
+        //{
+        //    SetupNewTrial();
+        //}
+        //#endif
 
-        if (!startTrial)
+        if (inTrial & !startTrial)
         {
             // Wait until the mouse is facing the target starting point to begin the trial
             CheckPlayerTargetAngle();
         }
 
-        if (inTrial)
+        if (inTrial & startTrial)
         {
 
             // Check if at destination
@@ -122,9 +122,9 @@ public class TargetController : MonoBehaviour {
     // -- Trial Setup Functions -- //
     public void SetupNewTrial()
     {
-
-        trialDone = false;
+        inTrial = true;
         startTrial = false;
+        trialDone = false;
 
         // For this trial, find start and end points of the target trajectory
         StartEnd = SelectStartEndPoints(trajectory);
@@ -172,10 +172,10 @@ public class TargetController : MonoBehaviour {
         agent.updatePosition = true;
     }
 
-    void SetupTargetAppearance(int target_index)
+    void SetupTargetAppearance(int targetIdx)
     {
         // set target object active and deactivate all other children
-        SetTargetActive(target_index);
+        SetTargetActive(targetIdx);
 
         // set target color
         try
@@ -202,6 +202,9 @@ public class TargetController : MonoBehaviour {
             // Otherwise, we just use the given scale
             targetObj.transform.localScale = scale;
         }
+
+        // If target is 2D and moving along a wall, rotate it so that it is perpendicular to the agent
+        targetObj.transform.Rotate(0f, 0f, 90f);
     }
 
     void SetTargetActive(int targetIdx)
@@ -216,12 +219,11 @@ public class TargetController : MonoBehaviour {
     void CheckPlayerTargetAngle()
     {
         // Get the angle between the target starting position and the current player position
-
-        Vector3 dir = (StartEnd[0].position - player.transform.position).normalized;
+        Vector3 dir = (player.transform.position - StartEnd[0].position).normalized;
 
         // Dot takes a value between [-1, 1]. 
         // 1 means parallel, facing same direction, 0 is facing 90 deg from target, -1 is facing away
-        float dot = Vector3.Dot(dir, transform.forward);
+        float dot = Vector2.Dot(new Vector2(dir.x, dir.z), new Vector2(transform.forward.x, transform.forward.z));
 
         // Since the dot product is on normalized vectors, acos will get us the absolute angle between 
         // target start and player. Convert to degrees for convenience.
@@ -237,27 +239,14 @@ public class TargetController : MonoBehaviour {
     void TrialEnd()
     {
         // What to do when a trial is over
+        targetObj.gameObject.SetActive(false);
+        targetObj = null;
+
         trialDone = true;
         inTrial = false;
         startTrial = false;
         atDestination = false;
-        targetObj.gameObject.SetActive(false);
-        targetObj = null;
     }
-
-    //void SetNavMeshActive(int trajectory_type)
-    //{
-    //    if (trajectory_type < 2)
-    //    {
-    //        // VScreens.SetActive(true);
-    //        NavMeshes_VScreen.SetActive(false);
-    //    }
-    //    else
-    //    {
-    //        // VScreens.SetActive(false);
-    //        NavMeshes_VScreen.SetActive(true);
-    //    }
-    //}
 
     // -- Pathfinding functions -- //
 
