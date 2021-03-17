@@ -20,12 +20,8 @@ public class TargetController : MonoBehaviour {
     public float speed = 0.5f;
     public float acceleration = 0.1f;
     public int trajectory = 0;
-    public int start_delta_heading = 45;
+    public float start_delta_heading = 30f;
     public Vector3 scale = new Vector3(0.025f, 0f, 0.025f);
-
-    // Public variables for the NavMesh Groups to be manipulated
-    // public GameObject VScreens;
-    // public GameObject NavMeshes_VScreen;
 
     // private variables for handling motion
     private bool atDestination = false;
@@ -41,8 +37,6 @@ public class TargetController : MonoBehaviour {
     private float sinePeriod;
     private float distanceRemaining;
 
-    private int counter = 0;
-
     // Use this for initialization
     void Start()
     {
@@ -52,7 +46,7 @@ public class TargetController : MonoBehaviour {
         // get the navigation agent of the target (independent of target shape)
         agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
 
-        // Find allocated starting poitns for paths. This is sorted according to 
+        // Find allocated starting points for paths. This is sorted according to 
         // the position conventions established for DLC
         StartPosWall = FindObsWithTag("StartWall");
         StartPosFloor = FindObsWithTag("StartFloor");
@@ -60,15 +54,6 @@ public class TargetController : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-
-        //// For debugging only
-        //#if (UNITY_EDITOR)
-        //counter++;
-        //if ((counter % 500 == 0))
-        //{
-        //    SetupNewTrial();
-        //}
-        //#endif
 
         if (inTrial & !startTrial)
         {
@@ -133,9 +118,39 @@ public class TargetController : MonoBehaviour {
         SetupBackgroundAppearance();
 
         // Set kinematic variables for target
-        SetupTargetKinematics();
-        
+        SetupAgentKinematics();
+
         // --- Set trajectory variables --- //
+        SetupTrajectories(trajectory);
+
+        // --- Set target appearance variables --- //
+        SetupTargetAppearance(targetIndex, trajectory);
+    }
+
+    void SetupBackgroundAppearance()
+    {
+        screenMaterial.SetColor("_Color", (Color)screenColor);
+    }
+
+    void SetupAgentKinematics()
+    {
+        // Move the agent to the starting position and set end point
+        agent.Warp(StartEnd[0].position);
+        agent.SetDestination(StartEnd[1].position);
+
+        // Get local normal vector based on agent and make the agent look there
+        localUp = agent.transform.up;
+        transform.LookAt(agent.destination, localUp);
+
+        // Set speed and acceleration
+        agent.speed = speed;
+        agent.acceleration = acceleration;
+        agent.updatePosition = true;
+        agent.isStopped = true;
+    }
+
+    void SetupTrajectories(int trajectory)
+    {
         // If the agent is operating on a sinusoidal path, make acceleration 0 so we can manually control the motion
         if (trajectory == 1 || trajectory >= 3)
         {
@@ -145,66 +160,53 @@ public class TargetController : MonoBehaviour {
 
         // If we end up using a sinusoidal path, find the temporal period of the motion
         sinePeriod = 2.0f * (float)Math.PI / (Vector3.Distance(StartEnd[1].position, StartEnd[0].position) / speed);
-
-        // --- Set target appearance variables --- //
-        SetupTargetAppearance(targetIndex);
-
     }
 
-    void SetupBackgroundAppearance()
+    void SetupTargetAppearance(int targetIdx, int trajectory)
     {
-        screenMaterial.SetColor("_Color", (Color)screenColor);
-    }
-
-    void SetupTargetKinematics()
-    {
-        // Move the agent to the starting position and set end point
-        agent.Warp(StartEnd[0].position);
-        agent.SetDestination(StartEnd[1].position);
-
-        // Get local normal vector based on agent and make the agent look there
-        localUp = agent.transform.up;
-        transform.LookAt(agent.destination, globalUp);
-
-        // Set speed and acceleration
-        agent.speed = speed;
-        agent.acceleration = acceleration;
-        agent.updatePosition = true;
-    }
-
-    void SetupTargetAppearance(int targetIdx)
-    {
-        // set target object active and deactivate all other children
+        // set target object active
         SetTargetActive(targetIdx);
 
-        // set target color
-        try
+        if (targetIdx < 6)
         {
+            // set target color
             targetObj.GetComponent<Renderer>().material.SetColor("_Color", (Color)targetColor);
+
+            // Scale gets set depending on what object is being shown
+            if ((targetIndex == 0 || targetIndex == 3) & (scale.x == scale.z))
+            {
+                // If we are passing an ellipse or ellipsoid, we need to scale the x and y axes by 0.5
+                // This preserves a 2:1 major:minor axis ratio, with the major (z) axis being the length set by the scaling factor 
+                targetObj.transform.localScale = (Vector3.Scale(scale, new Vector3(0.5f, 0.5f, 1f)));
+            }
+            else
+            {
+                // Otherwise, we just use the given scale
+                targetObj.transform.localScale = scale;
+            }
+
+            // If target is 2D and moving along a wall, rotate it so that it is perpendicular to the agent
+            if (targetIdx < 3 & trajectory < 2)
+            {
+                targetObj.transform.Rotate(0f, 0f, 90f);
+            }
+            
+            // For all targets, we want the lowest part of the target to scrape the floor, or be just above it
+            targetObj.transform.position = new Vector3(targetObj.transform.position.x, 
+                                                       targetObj.transform.position.y + (targetObj.transform.localScale.x / 2f) + 0.005f, 
+                                                       targetObj.transform.position.z);
         }
-        catch
+        else
         {
-            // Handle the coloration of a VR cricket
+            // This is a VR cricket, so it gets handled differently
             Transform current = targetObj.transform.Find("Body");
             current = current.Find("grille_geo");
             current.GetComponent<Renderer>().material.SetColor("_Color", (Color)targetColor);
         }
+  
 
-        // Scale gets set depending on what object is being shown
-        if ((targetIndex == 0 || targetIndex == 3) & (scale.x == scale.z))
-        {
-            // If we are passing an ellipse or ellipsoid, we need to scale the x and y axes by 0.5
-            // This preserves a 2:1 major:minor axis ratio, with the major (z) axis being the length set by the scaling factor 
-            targetObj.transform.localScale = (Vector3.Scale(scale, new Vector3(0.5f, 0.5f, 1f)));
-        }
-        else
-        {
-            // Otherwise, we just use the given scale
-            targetObj.transform.localScale = scale;
-        }
-
-        // If target is 2D and moving along a wall, rotate it so that it is perpendicular to the agent
-        targetObj.transform.Rotate(0f, 0f, 90f);
+        // Set inactive until trial starts
+        targetObj.gameObject.SetActive(false);
     }
 
     void SetTargetActive(int targetIdx)
@@ -214,16 +216,18 @@ public class TargetController : MonoBehaviour {
         targetObj.gameObject.SetActive(true);
     }
 
-    // -- Trial Control Flow Functions -- //
+    // -- Trial Control Flow Functions -- //   
 
     void CheckPlayerTargetAngle()
     {
-        // Get the angle between the target starting position and the current player position
-        Vector3 dir = (player.transform.position - StartEnd[0].position).normalized;
+        // Get the vector from the player to the target start point
+        Vector3 dir = (StartEnd[0].position - player.transform.position).normalized;
 
         // Dot takes a value between [-1, 1]. 
         // 1 means parallel, facing same direction, 0 is facing 90 deg from target, -1 is facing away
-        float dot = Vector2.Dot(new Vector2(dir.x, dir.z), new Vector2(transform.forward.x, transform.forward.z));
+        // Note here that the transform from Motive to Unity has the X direction of the tracker being forward, where Unity
+        // uses Z as the forward direction
+        float dot = Vector2.Dot(new Vector2(dir.x, dir.z), new Vector2(player.transform.right.x, player.transform.right.z));
 
         // Since the dot product is on normalized vectors, acos will get us the absolute angle between 
         // target start and player. Convert to degrees for convenience.
@@ -232,6 +236,8 @@ public class TargetController : MonoBehaviour {
         // If the mouse is sufficiently facing the target, begin the trial.
         if (angle <= start_delta_heading)
         {
+            targetObj.gameObject.SetActive(true);
+            agent.isStopped = false;
             startTrial = true;
         }
     }
@@ -335,11 +341,6 @@ public class TargetController : MonoBehaviour {
                     }
                 }
         }
-
-        // Need to shift the transform to compensate for radius, plus whatever
-        // vertical distance we want
-        //StartPoint.transform.position = StartPoint.transform.position + new Vector3(0, size, size);
-        //EndPoint.transform.position = EndPoint.transform.position + new Vector3(0, size, size);
 
         // Build and return array
         StartEnd[0] = StartPoint;

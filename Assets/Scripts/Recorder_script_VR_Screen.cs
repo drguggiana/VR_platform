@@ -90,7 +90,7 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
         // For debugging only
         #if (UNITY_EDITOR)
             counter++;
-            if ((counter % 1000 == 0) & trialDone)
+            if ((counter % 500 == 0) & trialDone)
             {
                 targetController.SetupNewTrial();
                 inTrial = targetController.inTrial;
