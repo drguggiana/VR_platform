@@ -162,10 +162,30 @@ public class TargetController : MonoBehaviour {
         sinePeriod = 2.0f * (float)Math.PI / (Vector3.Distance(StartEnd[1].position, StartEnd[0].position) / speed);
     }
 
+    float PosNegAngle(Vector3 a1, Vector3 a2, Vector3 normal)
+    {
+        float angle = Vector3.Angle(a1, a2);
+        float sign = Mathf.Sign(Vector3.Dot(normal, Vector3.Cross(a1, a2)));
+        return angle * sign;
+    }
+
+    RaycastHit FindSurfaceNormal()
+    {
+        Vector3 theRay = -agent.transform.up;
+        RaycastHit hit;
+
+        Physics.Raycast(agent.transform.position, theRay, out hit, 1f);
+        return hit;
+        // return hit.normal;
+
+    }
+
     void SetupTargetAppearance(int targetIdx, int trajectory)
     {
         // set target object active
         SetTargetActive(targetIdx);
+
+        targetObj.transform.LookAt(agent.destination, localUp);
 
         if (targetIdx < 6)
         {
@@ -173,7 +193,7 @@ public class TargetController : MonoBehaviour {
             targetObj.GetComponent<Renderer>().material.SetColor("_Color", (Color)targetColor);
 
             // Scale gets set depending on what object is being shown
-            if ((targetIndex == 0 || targetIndex == 3) & (scale.x == scale.z))
+            if ((targetIndex == 0 || targetIndex == 3) & (scale.y == scale.z))
             {
                 // If we are passing an ellipse or ellipsoid, we need to scale the x and y axes by 0.5
                 // This preserves a 2:1 major:minor axis ratio, with the major (z) axis being the length set by the scaling factor 
@@ -185,16 +205,23 @@ public class TargetController : MonoBehaviour {
                 targetObj.transform.localScale = scale;
             }
 
+            //// For all targets, we want the lowest part of the target to scrape the floor, or be just above it
+            //targetObj.transform.position = new Vector3(targetObj.transform.position.x,
+            //                                           targetObj.transform.position.y + (targetObj.transform.localScale.y / 2f) + 0.005f,
+            //                                           targetObj.transform.position.z);
+
             // If target is 2D and moving along a wall, rotate it so that it is perpendicular to the agent
             if (targetIdx < 3 & trajectory < 2)
             {
-                targetObj.transform.Rotate(0f, 0f, 90f);
+                RaycastHit hit = FindSurfaceNormal();
+                Debug.Log(hit.normal);
+                float zRot = PosNegAngle(hit.normal, agent.transform.up, agent.transform.forward);
+                Debug.Log(zRot);
+                targetObj.transform.localEulerAngles = new Vector3(0f, 0f, zRot);
+                //targetObj.transform.up = Vector3.up;
             }
-            
-            // For all targets, we want the lowest part of the target to scrape the floor, or be just above it
-            targetObj.transform.position = new Vector3(targetObj.transform.position.x, 
-                                                       targetObj.transform.position.y + (targetObj.transform.localScale.x / 2f) + 0.005f, 
-                                                       targetObj.transform.position.z);
+
+
         }
         else
         {
@@ -207,6 +234,20 @@ public class TargetController : MonoBehaviour {
 
         // Set inactive until trial starts
         targetObj.gameObject.SetActive(false);
+    }
+
+    private void Align()
+    {
+        Vector3 theRay = -transform.up;
+        RaycastHit hit;
+
+        if (Physics.Raycast(new Vector3(transform.position.x, transform.position.y, transform.position.z),
+            theRay, out hit, 2f))
+        {
+
+            Quaternion targetRotation = Quaternion.FromToRotation(transform.up, hit.normal) * transform.parent.rotation;
+
+        }
     }
 
     void SetTargetActive(int targetIdx)
