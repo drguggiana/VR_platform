@@ -90,7 +90,7 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
         // For debugging only
 #if (UNITY_EDITOR)
             counter++;
-            if (counter % 600 == 0)
+            if (counter % 1500 == 0)
             {
                 targetController.SetupNewTrial();
                 inTrial = targetController.inTrial;
@@ -206,12 +206,12 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
         {
             Vector3 corner_position = corner.transform.position;
             object[] corner_coord = {corner_position.z, corner_position.x};
-            string arena_corner = "[" + string.Join(", ", corner_coord) + "]";
+            string arena_corner = "[" + string.Join(",", corner_coord) + "]";
             corners[i] = arena_corner;
             i++;
         }
 
-        string arena_corners_string = string.Concat("arena_corners_x_y: ", "[", string.Join(",", corners), "]");
+        string arena_corners_string = string.Concat("arena_corners ", "[", string.Join(",", corners), "]");
         writer.WriteLine(arena_corners_string);
 
         // handle any obstacles in the arena. This only logs the centroid of the obstacle
@@ -231,8 +231,10 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
     void AssembleHeader ()
     {
         string[] header = {"time_m", "trial_num",
-                            "target_y_m", "target_z_m", "target_x_m",
-                            "color_factor"};
+                           "mouse_x_m", "mouse_y_m", "mouse_z_m",
+                           "mouse_xrot_m", "mouse_yrot_m", "mouse_zrot_m",
+                           "target_x_m", "target_y_m", "target_z_m",
+                           "color_factor"};
         writer.WriteLine(string.Join(", ", header));
     }
 
