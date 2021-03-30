@@ -73,8 +73,8 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
         reference = OptitrackHiResTimer.Now();
 
         // Set up the camera (so it doesn't clip objects too close to the mouse)
-        //Camera cam = GetComponentInChildren<Camera>();
-        //cam.nearClipPlane = 0.000001f;
+        Camera cam = GetComponentInChildren<Camera>();
+        cam.nearClipPlane = 0.000001f;
 
         // Set the writer
         Paths.CheckFileExistence();

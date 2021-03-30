@@ -122,7 +122,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 110922081}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: NavMeshes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -137,7 +137,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 110922080}
   m_LocalRotation: {x: -0.0045184554, y: -0.007899703, z: -0.0024791653, w: 0.99995553}
-  m_LocalPosition: {x: 0.031, y: -0.002, z: -0.001}
+  m_LocalPosition: {x: 0.031, y: 0, z: -0.001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1895499516}
@@ -1272,7 +1272,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 920464098}
   m_LocalRotation: {x: 0.0017126263, y: 0.0019103808, z: 0.5349833, w: 0.84485877}
-  m_LocalPosition: {x: 0.35, y: -0.25, z: 0.049}
+  m_LocalPosition: {x: 0.352, y: -0.251, z: 0.049}
   m_LocalScale: {x: 0.060000002, y: 1, z: 0.16000006}
   m_Children: []
   m_Father: {fileID: 110922081}
@@ -1306,7 +1306,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 1
   m_VoxelSize: 0.0005
   m_BuildHeightMesh: 0
-  m_NavMeshData: {fileID: 23800000, guid: 66e913900396fae40bdac3216a56def8, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: fc7a36feecdf0cc4d908d0df5333b7ac, type: 2}
 --- !u!64 &920464101
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1316,7 +1316,7 @@ MeshCollider:
   m_GameObject: {fileID: 920464098}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Convex: 0
   m_CookingOptions: 14
@@ -1391,7 +1391,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 983794196}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.03, z: 0}
+  m_LocalPosition: {x: 0, y: 0.025, z: 0}
   m_LocalScale: {x: 0.02, y: 0.02, z: 0.04}
   m_Children: []
   m_Father: {fileID: 1646230864}
@@ -1798,10 +1798,6 @@ Prefab:
       propertyPath: m_RootOrder
       value: 4
       objectReference: {fileID: 0}
-    - target: {fileID: 1390912878697990, guid: fbee27fd9242f9647bb4fa8fad55ef0d, type: 2}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fbee27fd9242f9647bb4fa8fad55ef0d, type: 2}
   m_IsPrefabAsset: 0
@@ -1970,7 +1966,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 1025
+    m_Bits: 1537
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 2
@@ -2123,7 +2119,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1635729197}
   m_LocalRotation: {x: -0.38331753, y: -0.5978959, z: -0.37892067, w: -0.5933019}
-  m_LocalPosition: {x: -0.016, y: -0.245, z: -0.63}
+  m_LocalPosition: {x: -0.016, y: -0.247, z: -0.634}
   m_LocalScale: {x: 0.06000002, y: 1, z: 0.11000004}
   m_Children: []
   m_Father: {fileID: 110922081}
@@ -2157,7 +2153,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 1
   m_VoxelSize: 0.0005
   m_BuildHeightMesh: 0
-  m_NavMeshData: {fileID: 23800000, guid: 610a5369b59f897479addf8678486d24, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: 9616dc4e54e81834dad7c9a3fc4efc17, type: 2}
 --- !u!64 &1635729200
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -2167,7 +2163,7 @@ MeshCollider:
   m_GameObject: {fileID: 1635729197}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Convex: 0
   m_CookingOptions: 14
@@ -2381,7 +2377,7 @@ MonoBehaviour:
   speed: 0.5
   acceleration: 10
   trajectory: 2
-  scale: {x: 0.08, y: 0.08, z: 0.08}
+  scale: {x: 0.08, y: 0, z: 0.08}
   VScreens: {fileID: 1274805950}
   NavMeshes_VScreen: {fileID: 110922080}
 --- !u!1 &1656003224
@@ -2412,7 +2408,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1656003224}
   m_LocalRotation: {x: -0.3753749, y: -0.5981438, z: 0.37636545, w: 0.5997222}
-  m_LocalPosition: {x: -0.016, y: -0.252, z: 0.621}
+  m_LocalPosition: {x: -0.016, y: -0.251, z: 0.62}
   m_LocalScale: {x: 0.06000004, y: 1, z: 0.11000012}
   m_Children: []
   m_Father: {fileID: 110922081}
@@ -2446,7 +2442,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 1
   m_VoxelSize: 0.0005
   m_BuildHeightMesh: 0
-  m_NavMeshData: {fileID: 23800000, guid: 9eb5ea90194f58042aae1531a070cdf5, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: 5ae716b14cb12794aa551f0f3a43cfd4, type: 2}
 --- !u!64 &1656003227
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -2456,7 +2452,7 @@ MeshCollider:
   m_GameObject: {fileID: 1656003224}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Convex: 0
   m_CookingOptions: 14
@@ -2545,7 +2541,7 @@ Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: pb_Mesh5342
+  m_Name: pb_Mesh31664
   serializedVersion: 9
   m_SubMeshes:
   - serializedVersion: 2
@@ -2736,7 +2732,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 1937849816523898, guid: 98d7d240901cca54bbe360cc05703f12, type: 2}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 98d7d240901cca54bbe360cc05703f12, type: 2}
@@ -3522,8 +3518,8 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1895499515}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.033, y: -0.512, z: -0.017}
-  m_LocalScale: {x: 0.052, y: 1, z: 0.104}
+  m_LocalPosition: {x: -0.033, y: -0.518, z: -0.0034}
+  m_LocalScale: {x: 0.051, y: 1, z: 0.102}
   m_Children: []
   m_Father: {fileID: 110922081}
   m_RootOrder: 0
@@ -3636,7 +3632,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 1
   m_VoxelSize: 0.0005
   m_BuildHeightMesh: 0
-  m_NavMeshData: {fileID: 23800000, guid: de8a7d12b13d3e449a5dab88ee248267, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: c5a39a67ec83cdc4f80f39128eb65be2, type: 2}
 --- !u!64 &1895499522
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -3758,7 +3754,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 1
   m_VoxelSize: 0.0005
   m_BuildHeightMesh: 0
-  m_NavMeshData: {fileID: 23800000, guid: 07b589e96c1dda644a0497579fe037e3, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: d8c304ff558de0842a8d7f13ad89c55a, type: 2}
 --- !u!64 &1943711187
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -3768,7 +3764,7 @@ MeshCollider:
   m_GameObject: {fileID: 1943711184}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Convex: 0
   m_CookingOptions: 14
