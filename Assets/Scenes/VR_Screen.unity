@@ -789,104 +789,32 @@ Prefab:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 114733144835361592, guid: e45037862af4ac641a9a461284ec0001,
+    - target: {fileID: 114018948414515650, guid: e45037862af4ac641a9a461284ec0001,
         type: 2}
       propertyPath: StreamingClient
       value: 
       objectReference: {fileID: 303620641}
-    - target: {fileID: 114733144835361592, guid: e45037862af4ac641a9a461284ec0001,
+    - target: {fileID: 114018948414515650, guid: e45037862af4ac641a9a461284ec0001,
         type: 2}
       propertyPath: osc
       value: 
       objectReference: {fileID: 1005790155}
-    - target: {fileID: 114733144835361592, guid: e45037862af4ac641a9a461284ec0001,
+    - target: {fileID: 114018948414515650, guid: e45037862af4ac641a9a461284ec0001,
         type: 2}
       propertyPath: tracking_square
       value: 
       objectReference: {fileID: 1460562187}
-    - target: {fileID: 114733144835361592, guid: e45037862af4ac641a9a461284ec0001,
+    - target: {fileID: 114018948414515650, guid: e45037862af4ac641a9a461284ec0001,
         type: 2}
       propertyPath: TargetObj
       value: 
       objectReference: {fileID: 1646230862}
-    - target: {fileID: 114733144835361592, guid: e45037862af4ac641a9a461284ec0001,
+    - target: {fileID: 114018948414515650, guid: e45037862af4ac641a9a461284ec0001,
         type: 2}
       propertyPath: targetController
       value: 
       objectReference: {fileID: 1646230866}
-    - target: {fileID: 4735023314198918, guid: e45037862af4ac641a9a461284ec0001, type: 2}
-      propertyPath: m_LocalPosition.y
-      value: -0.02
-      objectReference: {fileID: 0}
-    - target: {fileID: 4751898376660540, guid: e45037862af4ac641a9a461284ec0001, type: 2}
-      propertyPath: m_LocalPosition.y
-      value: -0.04
-      objectReference: {fileID: 0}
-    - target: {fileID: 4751898376660540, guid: e45037862af4ac641a9a461284ec0001, type: 2}
-      propertyPath: m_LocalPosition.x
-      value: -0.0262
-      objectReference: {fileID: 0}
-    - target: {fileID: 4751898376660540, guid: e45037862af4ac641a9a461284ec0001, type: 2}
-      propertyPath: m_LocalPosition.z
-      value: 0.0028
-      objectReference: {fileID: 0}
-    - target: {fileID: 4735023314198918, guid: e45037862af4ac641a9a461284ec0001, type: 2}
-      propertyPath: m_LocalPosition.x
-      value: -0.0162
-      objectReference: {fileID: 0}
-    - target: {fileID: 4735023314198918, guid: e45037862af4ac641a9a461284ec0001, type: 2}
-      propertyPath: m_LocalPosition.z
-      value: 0.0028
-      objectReference: {fileID: 0}
-    - target: {fileID: 1421700478440120, guid: e45037862af4ac641a9a461284ec0001, type: 2}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 20856878786159182, guid: e45037862af4ac641a9a461284ec0001,
-        type: 2}
-      propertyPath: m_Depth
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 20856878786159182, guid: e45037862af4ac641a9a461284ec0001,
-        type: 2}
-      propertyPath: m_OcclusionCulling
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1464968447097328, guid: e45037862af4ac641a9a461284ec0001, type: 2}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 20856878786159182, guid: e45037862af4ac641a9a461284ec0001,
-        type: 2}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1434512426444694, guid: e45037862af4ac641a9a461284ec0001, type: 2}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 114373754176030258, guid: e45037862af4ac641a9a461284ec0001,
-        type: 2}
-      propertyPath: StreamingClient
-      value: 
-      objectReference: {fileID: 303620641}
-    - target: {fileID: 114373754176030258, guid: e45037862af4ac641a9a461284ec0001,
-        type: 2}
-      propertyPath: osc
-      value: 
-      objectReference: {fileID: 1005790155}
-    - target: {fileID: 114373754176030258, guid: e45037862af4ac641a9a461284ec0001,
-        type: 2}
-      propertyPath: tracking_square
-      value: 
-      objectReference: {fileID: 1460562187}
-    - target: {fileID: 114373754176030258, guid: e45037862af4ac641a9a461284ec0001,
-        type: 2}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 114373754176030258, guid: e45037862af4ac641a9a461284ec0001, type: 2}
+    m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e45037862af4ac641a9a461284ec0001, type: 2}
   m_IsPrefabAsset: 0
 --- !u!1 &646758539
@@ -1570,24 +1498,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4715335305075038, guid: e45037862af4ac641a9a461284ec0001,
     type: 2}
   m_PrefabInternal: {fileID: 646342795}
---- !u!114 &1174232806
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1174232804}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c4e21a6630183684a87ea10e949ffd19, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  StreamingClient: {fileID: 303620641}
-  osc: {fileID: 1005790155}
-  tracking_square: {fileID: 1460562187}
-  MouseObj: {fileID: 1174232804}
-  RigidBodyId: 4
-  TargetObj: {fileID: 1646230862}
-  targetController: {fileID: 1646230866}
 --- !u!21 &1234708771
 Material:
   serializedVersion: 6
