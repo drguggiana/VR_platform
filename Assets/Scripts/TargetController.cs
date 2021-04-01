@@ -171,7 +171,7 @@ public class TargetController : MonoBehaviour {
 
     RaycastHit FindSurfaceNormal()
     {
-        Vector3 theRay = -agent.transform.up;
+        Vector3 theRay = -Vector3.up;
         RaycastHit hit;
 
         Physics.Raycast(agent.transform.position, theRay, out hit, 1f);
@@ -210,7 +210,7 @@ public class TargetController : MonoBehaviour {
             //                                           targetObj.transform.position.y + (targetObj.transform.localScale.y / 2f) + 0.005f,
             //                                           targetObj.transform.position.z);
 
-            // If target is 2D and moving along a wall, rotate it so that it is perpendicular to the agent
+            // If target is 2D and moving along a wall, rotate it so that it is aligned with global up
             if (targetIdx < 3 & trajectory < 2)
             {
                 RaycastHit hit = FindSurfaceNormal();
