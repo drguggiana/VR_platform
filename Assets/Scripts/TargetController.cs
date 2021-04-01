@@ -28,6 +28,7 @@ public class TargetController : MonoBehaviour {
     private Vector3 currentPosition;
     private Vector3 localUp;
     private Vector3 globalUp = Vector3.up;
+    private Transform originalPosition;
 
     private Transform targetObj;
     private UnityEngine.AI.NavMeshAgent agent;
@@ -171,7 +172,7 @@ public class TargetController : MonoBehaviour {
 
     RaycastHit FindSurfaceNormal()
     {
-        Vector3 theRay = -Vector3.up;
+        Vector3 theRay = -globalUp;
         RaycastHit hit;
 
         Physics.Raycast(agent.transform.position, theRay, out hit, 1f);
@@ -180,46 +181,67 @@ public class TargetController : MonoBehaviour {
 
     }
 
+    void AlignGlobalUp()
+    {
+        RaycastHit hit = FindSurfaceNormal();
+        float zRot = PosNegAngle(hit.normal, agent.transform.up, agent.transform.forward);
+        targetObj.transform.localEulerAngles = new Vector3(0f, 0f, zRot);
+    }
+
     void SetupTargetAppearance(int targetIdx, int trajectory)
     {
         // set target object active
         SetTargetActive(targetIdx);
+        
 
-        targetObj.transform.LookAt(agent.destination, localUp);
-
+        // If we are dealing with a geometric shape target
         if (targetIdx < 6)
         {
             // set target color
             targetObj.GetComponent<Renderer>().material.SetColor("_Color", (Color)targetColor);
 
-            // Scale gets set depending on what object is being shown
-            if ((targetIndex == 0 || targetIndex == 3) & (scale.y == scale.z))
+            // For 2D objects, scale x-axis to zero
+            if (targetIndex <= 2)
             {
-                // If we are passing an ellipse or ellipsoid, we need to scale the x and y axes by 0.5
-                // This preserves a 2:1 major:minor axis ratio, with the major (z) axis being the length set by the scaling factor 
-                targetObj.transform.localScale = (Vector3.Scale(scale, new Vector3(0.5f, 0.5f, 1f)));
+                if (targetIdx == 0)
+                {
+                    // If we are passing an ellipse, we need to scale the y-axis by 0.5
+                    // This preserves a 2:1 major:minor axis ratio, with the major (z) axis 
+                    // being the length set by the scaling factor 
+                    targetObj.transform.localScale = (Vector3.Scale(scale, new Vector3(0f, 0.5f, 1f)));
+                }
+                else
+                {
+                    targetObj.transform.localScale = (Vector3.Scale(scale, new Vector3(0f, 1f, 1f)));
+                }
+
+                // For 2D target, align with the global up
+                AlignGlobalUp();
             }
             else
             {
-                // Otherwise, we just use the given scale
-                targetObj.transform.localScale = scale;
+                if (targetIdx == 3)
+                {
+                    // If we are passing an ellipsoid, we need to scale the y-axis by 0.5
+                    // This preserves a 2:1 major:minor axis ratio, with the major (z) axis 
+                    // being the length set by the scaling factor 
+                    targetObj.transform.localScale = (Vector3.Scale(scale, new Vector3(0.5f, 0.5f, 1f)));
+                }
+                else
+                {
+                    targetObj.transform.localScale = scale;
+                }
             }
+            //targetObj.transform.LookAt(agent.destination, localUp);
+
+
+
 
             //// For all targets, we want the lowest part of the target to scrape the floor, or be just above it
             //targetObj.transform.position = new Vector3(targetObj.transform.position.x,
             //                                           targetObj.transform.position.y + (targetObj.transform.localScale.y / 2f) + 0.005f,
             //                                           targetObj.transform.position.z);
 
-            // If target is 2D and moving along a wall, rotate it so that it is aligned with global up
-            if (targetIdx < 3 & trajectory < 2)
-            {
-                RaycastHit hit = FindSurfaceNormal();
-                Debug.Log(hit.normal);
-                float zRot = PosNegAngle(hit.normal, agent.transform.up, agent.transform.forward);
-                Debug.Log(zRot);
-                targetObj.transform.localEulerAngles = new Vector3(0f, 0f, zRot);
-                //targetObj.transform.up = Vector3.up;
-            }
 
 
         }
@@ -236,25 +258,18 @@ public class TargetController : MonoBehaviour {
         targetObj.gameObject.SetActive(false);
     }
 
-    private void Align()
-    {
-        Vector3 theRay = -transform.up;
-        RaycastHit hit;
-
-        if (Physics.Raycast(new Vector3(transform.position.x, transform.position.y, transform.position.z),
-            theRay, out hit, 2f))
-        {
-
-            Quaternion targetRotation = Quaternion.FromToRotation(transform.up, hit.normal) * transform.parent.rotation;
-
-        }
-    }
-
     void SetTargetActive(int targetIdx)
     {
         // Activate selected target
         targetObj = transform.GetChild(targetIdx);
         targetObj.gameObject.SetActive(true);
+    }
+
+    void ResetTargetAppearance()
+    {
+        // TODO reset target to initial conditions 
+        targetObj.position = originalPosition.position;
+        targetObj.rotation = originalPosition.rotation
     }
 
     // -- Trial Control Flow Functions -- //   
