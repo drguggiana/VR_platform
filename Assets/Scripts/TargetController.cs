@@ -16,9 +16,9 @@ public class TargetController : MonoBehaviour {
     public bool inTrial = false;
     private bool startTrial = false;
 
-    public int targetIndex = 2;    // Index of the child target to be tested
+    public int targetIndex = 0;    // Index of the child target to be tested
     public float speed = 0.5f;
-    public float acceleration = 0.1f;
+    public float acceleration = 10f;
     public int trajectory = 0;
     public float start_delta_heading = 30f;
     public Vector3 scale = new Vector3(0.025f, 0f, 0.025f);
@@ -60,7 +60,14 @@ public class TargetController : MonoBehaviour {
         if (inTrial & !startTrial)
         {
             // Wait until the mouse is facing the target starting point to begin the trial
-            CheckPlayerTargetAngle();
+            float angle = CheckPlayerTargetAngle();
+            // If the mouse is sufficiently facing the target, begin the trial.
+            if (angle <= start_delta_heading)
+            {
+                targetObj.gameObject.SetActive(true);
+                agent.isStopped = false;
+                startTrial = true;
+            }
         }
 
         if (inTrial & startTrial)
@@ -164,6 +171,49 @@ public class TargetController : MonoBehaviour {
         sinePeriod = 2.0f * (float)Math.PI / (Vector3.Distance(StartEnd[1].position, StartEnd[0].position) / speed);
     }
 
+    void SetupTargetAppearance(int targetIdx, int trajectory)
+    {
+        // set target object active
+        SetTargetActive(targetIdx);
+
+        // Scale the target
+        ScaleTarget(targetIdx);
+
+        // Align target with the global up if moving along the wall
+        if (trajectory < 2)
+        {
+            float angularOffset = AlignGlobalUp();
+            int offsetSign = Math.Sign((double)angularOffset);
+            float aligned = AlignedTravelDirection(agent.transform.forward, globalForward);
+            int directionSign = Math.Sign((double)aligned);
+
+            // Translate target so that it isn't being clipped by the wall or floor
+            // Here the offset sign compensates for the rotation of the target depending on the direction of motion. 
+            // The directionSign is positive if thedirection of motion is the same as global forward, and negative if opposite. 
+            // This tells us to move the target + or - in the x-direction
+            targetObj.transform.position = new Vector3(agent.transform.position.x + directionSign * offsetSign * (targetObj.transform.localScale.x / 2f) * (float)Math.Cos(angularOffset * Math.PI / 180f),
+                                                       agent.transform.position.y + offsetSign * (targetObj.transform.localScale.y / 2f) * (float)Math.Sin(angularOffset * Math.PI / 180f),
+                                                       agent.transform.position.z);
+        }
+        
+        // Set target color
+        if (targetIdx < 6)
+        {
+            // Geometric targets
+            targetObj.GetComponent<Renderer>().material.SetColor("_Color", (Color)targetColor);
+        }
+        else
+        {
+            // This is a VR cricket, so it gets handled differently
+            Transform current = targetObj.transform.Find("Body");
+            current = current.Find("grille_geo");
+            current.GetComponent<Renderer>().material.SetColor("_Color", (Color)targetColor);
+        }
+
+        // Set inactive until trial starts
+        targetObj.gameObject.SetActive(false);
+    }
+
     float PosNegAngle(Vector3 a1, Vector3 a2, Vector3 normal)
     {
         float angle = Vector3.Angle(a1, a2);
@@ -190,44 +240,9 @@ public class TargetController : MonoBehaviour {
 
     float AlignedTravelDirection(Vector3 direction, Vector3 testDir)
     {
+        // +1 is perfectly aligned, 0 is perpendicular, -1 is perfectly opposite
         float dot = Vector2.Dot(new Vector2(direction.x, direction.z), new Vector2(testDir.x, testDir.z));
         return dot;
-    }
-
-    void SetupTargetAppearance(int targetIdx, int trajectory)
-    {
-        // set target object active
-        SetTargetActive(targetIdx);
-
-        // Scale the target
-        ScaleTarget(targetIdx);
-
-        // Align with the global up
-        float angularOffset = AlignGlobalUp();
-        int offsetSign = Math.Sign((double)angularOffset);
-        float aligned = AlignedTravelDirection(agent.transform.forward, globalForward);
-        int directionSign = Math.Sign((double)aligned);
-
-        targetObj.transform.position = new Vector3(agent.transform.position.x + directionSign * offsetSign * (targetObj.transform.localScale.x / 2f) * (float)Math.Cos(angularOffset * Math.PI / 180f),
-                                                   agent.transform.position.y + offsetSign * (targetObj.transform.localScale.y / 2f) * (float)Math.Sin(angularOffset * Math.PI / 180f),
-                                                   agent.transform.position.z);
-
-        // Set target color
-        if (targetIdx < 6)
-        {
-            // Geometric targets
-            targetObj.GetComponent<Renderer>().material.SetColor("_Color", (Color)targetColor);
-        }
-        else
-        {
-            // This is a VR cricket, so it gets handled differently
-            Transform current = targetObj.transform.Find("Body");
-            current = current.Find("grille_geo");
-            current.GetComponent<Renderer>().material.SetColor("_Color", (Color)targetColor);
-        }
-
-        // Set inactive until trial starts
-        targetObj.gameObject.SetActive(false);
     }
 
     void ScaleTarget(int targetIdx)
@@ -282,7 +297,7 @@ public class TargetController : MonoBehaviour {
 
     // -- Trial Control Flow Functions -- //   
 
-    void CheckPlayerTargetAngle()
+    float CheckPlayerTargetAngle()
     {
         // Get the vector from the player to the target start point
         Vector3 dir = (StartEnd[0].position - player.transform.position).normalized;
@@ -297,13 +312,8 @@ public class TargetController : MonoBehaviour {
         // target start and player. Convert to degrees for convenience.
         float angle = (180f / (float)Math.PI) * (float)Math.Acos(dot);
 
-        // If the mouse is sufficiently facing the target, begin the trial.
-        if (angle <= start_delta_heading)
-        {
-            targetObj.gameObject.SetActive(true);
-            agent.isStopped = false;
-            startTrial = true;
-        }
+        return angle
+        
     }
 
     void TrialEnd()

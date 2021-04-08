@@ -124,23 +124,21 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
          */
 
         // --- Handle the tracking square --- //
-        //counter++;
-        //if (counter % 120 == 0)
-        //{
-            // create the color for the square
-            new_color = new Color(color_factor, color_factor, color_factor, 1f);
-            // put it on the square 
-            tracking_square.GetComponent<Renderer>().material.SetColor("_Color", new_color);
-            // Define the color for the next iteration (switch it)
-            if (color_factor > 0.0f)
-            {
-                color_factor = 0.0f;
-            }
-            else
-            {
-                color_factor = 1.0f;
-            }
-        //}
+    
+        // create the color for the square
+        new_color = new Color(color_factor, color_factor, color_factor, 1f);
+        // put it on the square 
+        tracking_square.GetComponent<Renderer>().material.SetColor("_Color", new_color);
+        // Define the color for the next iteration (switch it)
+        if (color_factor > 0.0f)
+        {
+            color_factor = 0.0f;
+        }
+        else
+        {
+            color_factor = 1.0f;
+        }
+
 
 
         // --- Handle mouse and target data --- //
@@ -205,7 +203,7 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
         foreach (GameObject corner in FindObsWithTag("Corner"))
         {
             Vector3 corner_position = corner.transform.position;
-            object[] corner_coord = {corner_position.z, corner_position.x};
+            object[] corner_coord = {corner_position.x, corner_position.z};
             string arena_corner = "[" + string.Join(",", corner_coord) + "]";
             corners[i] = arena_corner;
             i++;
@@ -219,7 +217,7 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
         {
             string this_obstacle = obstacle.name.ToString().ToLower();
             Vector3 obstacle_position = obstacle.transform.position;
-            object[] obstacle_coords = {obstacle_position.z, obstacle_position.x, obstacle_position.y};
+            object[] obstacle_coords = {obstacle_position.x, obstacle_position.y, obstacle_position.z};
             this_obstacle = string.Concat(this_obstacle + "obs: ", " [", string.Join(",", obstacle_coords), "]");
             writer.WriteLine(this_obstacle);
         }
@@ -245,12 +243,12 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
         // Parse the values for trial setup
         trial_num = int.Parse(message.values[0].ToString());
         shape = int.Parse(message.values[1].ToString());          // This is an integer representing the index of the child object of Target obj in scene
-        scale = StringToVector3(message.values[2].ToString());
-        screen_color = StringToVector4(message.values[3].ToString());
-        target_color = StringToVector4(message.values[4].ToString());
-        speed = float.Parse(message.values[5].ToString());
-        acceleration = float.Parse(message.values[6].ToString());
-        trajectory = int.Parse(message.values[7].ToString());
+        scale = StringToVector3(message.values[2].ToString());    // Vector3 defining the scale of the target
+        screen_color = StringToVector4(message.values[3].ToString());    // Vector4 defining screen color in RGBA
+        target_color = StringToVector4(message.values[4].ToString());    // Vector4 defining target color in RGBA
+        speed = float.Parse(message.values[5].ToString());    // Float for target speed
+        acceleration = float.Parse(message.values[6].ToString());    // Float for target acceleration
+        trajectory = int.Parse(message.values[7].ToString());    // Int for trajectory type
 
         // Set values in TrialHandler for the next trial
         targetController.targetIndex = shape;
@@ -262,8 +260,10 @@ public class Recorder_script_VR_Screen : MonoBehaviour {
         targetController.trajectory = trajectory;
 
         // Send handshake message to Python process to confirm receipt of parameters
-        OscMessage handshake = new OscMessage();
-        handshake.address = "/Handshake";
+        OscMessage handshake = new OscMessage
+        {
+            address = "/Handshake"
+        };
         handshake.values.Add(trial_num);
         osc.Send(handshake);
 
