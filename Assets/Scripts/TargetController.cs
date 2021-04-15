@@ -122,6 +122,7 @@ public class TargetController : MonoBehaviour {
 
         // For this trial, find start and end points of the target trajectory
         StartEnd = SelectStartEndPoints(trajectory);
+        Debug.Log(StartEnd);
 
         // Set background appearance
         SetupBackgroundAppearance();
@@ -312,7 +313,7 @@ public class TargetController : MonoBehaviour {
         // target start and player. Convert to degrees for convenience.
         float angle = (180f / (float)Math.PI) * (float)Math.Acos(dot);
 
-        return angle
+        return angle;
         
     }
 
@@ -369,29 +370,43 @@ public class TargetController : MonoBehaviour {
 
         Transform StartPoint = null;
         Transform EndPoint = null;
-        float closestDistanceSqr = 0.0f;
 
         // Get current player position
         currentPosition = player.transform.position;
 
-        // Find the farthest corner from the player
+        //// Find the farthest corner from the player
+        //foreach (GameObject start in StartPos)
+        //{
+        //    Transform start_loc = start.transform;
+        //    Vector3 directionToTarget = start_loc.position - currentPosition;
+        //    float dSqrToTarget = directionToTarget.sqrMagnitude;
+        //    if (dSqrToTarget > closestDistanceSqr)
+        //    {
+        //        closestDistanceSqr = dSqrToTarget;
+        //        StartPoint = start_loc;
+        //    }
+        //}
+
+        // Find the closest corner to the player
+        // Find the corner with the most similar z coordinate (search along short walls)
+        float farthestDistanceSqr = 1.5f;
         foreach (GameObject start in StartPos)
         {
             Transform start_loc = start.transform;
-            Vector3 directionToTarget = start_loc.position - currentPosition;
-            float dSqrToTarget = directionToTarget.sqrMagnitude;
-            if (dSqrToTarget > closestDistanceSqr)
+            float x_diff = Mathf.Abs(currentPosition.x - start_loc.position.x);
+            float z_diff = Mathf.Abs(currentPosition.z - start_loc.position.z);
+            if (x_diff > 0.1 && z_diff < 0.1)
             {
-                closestDistanceSqr = dSqrToTarget;
                 StartPoint = start_loc;
             }
         }
+        Debug.Log(StartPoint);
 
         // Find the end point. This depends on if we are moving along the wall or along the arena diagonal
         if (trajectory >= 2)
 
-        {   // Here we are moving along the floor. Look for opposite corner.
-            closestDistanceSqr = 0.0f;
+        {   // Here we are moving along the floor. Look for opposite (farthest) corner.
+            float closestDistanceSqr = 0.0f;
             foreach (GameObject start in StartPos)
             {
                 Transform start_loc = start.transform;
@@ -417,6 +432,7 @@ public class TargetController : MonoBehaviour {
                     }
                 }
         }
+        Debug.Log(EndPoint);
 
         // Build and return array
         StartEnd[0] = StartPoint;
