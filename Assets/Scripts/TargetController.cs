@@ -20,7 +20,7 @@ public class TargetController : MonoBehaviour {
     public float speed = 0.5f;
     public float acceleration = 10f;
     public int trajectory = 0;
-    public float start_delta_heading = 30f;
+    public float start_delta_heading = 60f;
     public Vector3 scale = new Vector3(0.025f, 0f, 0.025f);
 
     // private variables for handling motion
@@ -34,8 +34,8 @@ public class TargetController : MonoBehaviour {
     private Transform targetObj;
     private UnityEngine.AI.NavMeshAgent agent;
     private Transform[] StartEnd;
-    private GameObject[] StartPosWall;
-    private GameObject[] StartPosFloor;
+    private GameObject[] StartWall;
+    private GameObject[] StartFloor;
     private float sinePeriod;
     private float distanceRemaining;
 
@@ -50,8 +50,8 @@ public class TargetController : MonoBehaviour {
 
         // Find allocated starting points for paths. This is sorted according to 
         // the position conventions established for DLC
-        StartPosWall = FindObsWithTag("StartWall");
-        StartPosFloor = FindObsWithTag("StartFloor");
+        StartWall = FindObsWithTag("StartWall");
+        StartFloor = FindObsWithTag("StartFloor");
     }
 
     // Update is called once per frame
@@ -61,9 +61,11 @@ public class TargetController : MonoBehaviour {
         {
             // Wait until the mouse is facing the target starting point to begin the trial
             float angle = CheckPlayerTargetAngle();
+
             // If the mouse is sufficiently facing the target, begin the trial.
             if (angle <= start_delta_heading)
             {
+                Debug.Log("Look to Start");
                 targetObj.gameObject.SetActive(true);
                 agent.isStopped = false;
                 startTrial = true;
@@ -116,13 +118,10 @@ public class TargetController : MonoBehaviour {
     // -- Trial Setup Functions -- //
     public void SetupNewTrial()
     {
-        inTrial = true;
-        startTrial = false;
-        trialDone = false;
+        Debug.Log("Setup Trial");
 
         // For this trial, find start and end points of the target trajectory
         StartEnd = SelectStartEndPoints(trajectory);
-        Debug.Log(StartEnd);
 
         // Set background appearance
         SetupBackgroundAppearance();
@@ -135,6 +134,10 @@ public class TargetController : MonoBehaviour {
 
         // --- Set target appearance variables --- //
         SetupTargetAppearance(targetIndex, trajectory);
+
+        inTrial = true;
+        startTrial = false;
+        trialDone = false;
     }
 
     void SetupBackgroundAppearance()
@@ -319,6 +322,7 @@ public class TargetController : MonoBehaviour {
 
     void TrialEnd()
     {
+        Debug.Log("End Trial");
         ResetAgentTargetTransform();
 
         targetObj.gameObject.SetActive(false);
@@ -353,15 +357,15 @@ public class TargetController : MonoBehaviour {
     {
         if (trajectory >= 2)
         {
-            return FindStartEndPoints(StartPosFloor);
+            return FindStartEndPoints(StartFloor);
         }
         else
         {
-            return FindStartEndPoints(StartPosWall);
+            return FindStartEndPoints(StartWall);
         }
     }
 
-    Transform[] FindStartEndPoints(GameObject[] StartPos)
+    Transform[] FindStartEndPoints(GameObject[] StartEndPositions)
     {
         // Find the start and end points for motion. Adapted from 
         // https://answers.unity.com/questions/1236558/finding-nearest-game-object.html
@@ -389,50 +393,48 @@ public class TargetController : MonoBehaviour {
 
         // Find the closest corner to the player
         // Find the corner with the most similar z coordinate (search along short walls)
-        float farthestDistanceSqr = 1.5f;
-        foreach (GameObject start in StartPos)
+        foreach (GameObject start in StartEndPositions)
         {
             Transform start_loc = start.transform;
             float x_diff = Mathf.Abs(currentPosition.x - start_loc.position.x);
             float z_diff = Mathf.Abs(currentPosition.z - start_loc.position.z);
-            if (x_diff > 0.1 && z_diff < 0.1)
+            if (x_diff > 0.2 && z_diff < 0.5)
             {
                 StartPoint = start_loc;
             }
         }
-        Debug.Log(StartPoint);
 
         // Find the end point. This depends on if we are moving along the wall or along the arena diagonal
         if (trajectory >= 2)
-
-        {   // Here we are moving along the floor. Look for opposite (farthest) corner.
+        {   
+            // Here we are moving along the floor. Look for opposite (farthest) corner.
             float closestDistanceSqr = 0.0f;
-            foreach (GameObject start in StartPos)
+            foreach (GameObject end in StartEndPositions)
             {
-                Transform start_loc = start.transform;
-                float dSqrToTarget = Vector3.Distance(start_loc.position, StartPoint.position);
+                Transform end_loc = end.transform;
+                float dSqrToTarget = Vector3.Distance(end_loc.position, StartPoint.position);
                 if (dSqrToTarget > closestDistanceSqr)
                 {
                     closestDistanceSqr = dSqrToTarget;
-                    EndPoint = start_loc;
+                    EndPoint = end_loc;
                 }
             }
         }
         else
-        {   // Here we are moving along the wall
+        {   
+            // Here we are moving along the wall
             // Find the corner with the most similar x coordinate (since we only go along long walls)
-            foreach (GameObject start in StartPos)
+            foreach (GameObject end in StartEndPositions)
                 {
-                    Transform start_loc = start.transform;
-                    float x_diff = Mathf.Abs(StartPoint.position.x - start_loc.position.x);
-                    float z_diff = Mathf.Abs(StartPoint.position.z - start_loc.position.z);
+                    Transform end_loc = end.transform;
+                    float x_diff = Mathf.Abs(StartPoint.position.x - end_loc.position.x);
+                    float z_diff = Mathf.Abs(StartPoint.position.z - end_loc.position.z);
                     if (x_diff < 0.1 && z_diff > 0.5)
                     {
-                        EndPoint = start_loc;
+                        EndPoint = end_loc;
                     }
                 }
         }
-        Debug.Log(EndPoint);
 
         // Build and return array
         StartEnd[0] = StartPoint;
