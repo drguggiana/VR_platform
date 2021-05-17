@@ -13,16 +13,22 @@ public class Trajectories : MonoBehaviour {
     {
         // Find allocated starting poitns for paths. This is sorted according to 
         // the position conventions established for DLC
-        Starts = FindObsWithTag("Starts");
+        Starts = HelperFunctions.FindObsWithTag("Starts");
     }
 
    
-    void Linear2D(Transform start, Transform end)
+    void Update()
+    {
+
+    }
+
+
+    public void Linear2D(Transform start, Transform end)
     {
         // This is handled by the NavMesh Agent. Just pass here
     }
 
-    void Sine2D(float time, Transform start, Transform end)
+    public void Sine2D(float time, Transform start, Transform end)
     {
         // Get distance between points. They should be at the same height, so this is really
         // a 2D lienar distance
@@ -46,17 +52,17 @@ public class Trajectories : MonoBehaviour {
     // --- For movement in 3D --- //
 
 
-    void Linear3D(Transform start, Transform end)
+    public void Linear3D(Transform start, Transform end)
     {
         // This is also handled by the NavMesh Agent. Just pass here
     }
 
-    void SineVert3D(Transform start, Transform end, float height)
+    public void SineVert3D(Transform start, Transform end, float height)
     {
 
     }
 
-    void SineHorz3D(Transform start, Transform end, float height)
+    public void SineHorz3D(Transform start, Transform end, float height)
     {
 
     }
@@ -117,18 +123,6 @@ public class Trajectories : MonoBehaviour {
         StartEnd[1] = EndPoint;
 
         return StartEnd;
-    }
-
-    GameObject[] FindObsWithTag(string tag)
-    {
-        GameObject[] foundObs = GameObject.FindGameObjectsWithTag(tag);
-        Array.Sort(foundObs, CompareObNames);
-        return foundObs;
-    }
-
-    int CompareObNames(GameObject x, GameObject y)
-    {
-        return x.name.CompareTo(y.name);
     }
 
 }

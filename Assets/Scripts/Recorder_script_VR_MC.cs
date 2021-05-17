@@ -68,11 +68,11 @@ public class Recorder_script_VR_MC : MonoBehaviour
         cam.nearClipPlane = 0.000001f;
 
         // Set the writer
-        Paths.CheckFileExistence();
+        Paths.CheckFileExistence(Paths.recording_path);
         writer = new StreamWriter(Paths.recording_path, true);
 
         // Get cricket object array sorted by name/number
-        CricketObjs = FindObsWithTag("Cricket");
+        CricketObjs = HelperFunctions.FindObsWithTag("Cricket");
 
         // Write initial parameters and header to file
         LogSceneParams();
@@ -178,7 +178,7 @@ public class Recorder_script_VR_MC : MonoBehaviour
         string[] corners = new string[4];
 
         int i = 0;
-        foreach (GameObject corner in FindObsWithTag("Corner"))
+        foreach (GameObject corner in HelperFunctions.FindObsWithTag("Corner"))
         {
             Vector3 corner_position = corner.transform.position;
             object[] corner_coord = { corner_position.z, corner_position.x };
@@ -191,7 +191,7 @@ public class Recorder_script_VR_MC : MonoBehaviour
         writer.WriteLine(arena_corners_string);
 
         // handle any obstacles in the arena. This only logs the centroid of the obstacle
-        foreach (GameObject obstacle in FindObsWithTag("Obstacle"))
+        foreach (GameObject obstacle in HelperFunctions.FindObsWithTag("Obstacle"))
         {
             string this_obstacle = obstacle.name.ToString().ToLower();
             Vector3 obstacle_position = obstacle.transform.position;
@@ -231,18 +231,6 @@ public class Recorder_script_VR_MC : MonoBehaviour
 
         object[] header = {"time_m", mouse_string, cricket_string, "color_factor"};
         writer.WriteLine(string.Join(", ", header));
-    }
-
-    GameObject[] FindObsWithTag(string tag)
-    {
-        GameObject[] foundObs = GameObject.FindGameObjectsWithTag(tag);
-        Array.Sort(foundObs, CompareObNames);
-        return foundObs;
-    }
-
-    int CompareObNames(GameObject x, GameObject y)
-    {
-        return x.name.CompareTo(y.name);
     }
 
     void OnReceiveStop(OscMessage message)

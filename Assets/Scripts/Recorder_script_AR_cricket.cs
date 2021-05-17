@@ -83,7 +83,7 @@ public class Recorded_script_AR_cricket : MonoBehaviour
         cam.nearClipPlane = 0.000001f;
 
         // Set the writer
-        Paths.CheckFileExistence();
+        Paths.CheckFileExistence(Paths.recording_path);
         writer = new StreamWriter(Paths.recording_path, true);
 
         // Write initial parameters and header to file
@@ -146,7 +146,6 @@ public class Recorded_script_AR_cricket : MonoBehaviour
         {
             color_factor = 1.0f;
         }
-
 
 
         // --- Handle mouse, cricket, and target data --- //
@@ -232,7 +231,7 @@ public class Recorded_script_AR_cricket : MonoBehaviour
         string[] corners = new string[4];
 
         int i = 0;
-        foreach (GameObject corner in FindObsWithTag("Corner"))
+        foreach (GameObject corner in HelperFunctions.FindObsWithTag("Corner"))
         {
             Vector3 corner_position = corner.transform.position;
             object[] corner_coord = { corner_position.x, corner_position.z };
@@ -245,7 +244,7 @@ public class Recorded_script_AR_cricket : MonoBehaviour
         writer.WriteLine(arena_corners_string);
 
         // handle any obstacles in the arena. This only logs the centroid of the obstacle
-        foreach (GameObject obstacle in FindObsWithTag("Obstacle"))
+        foreach (GameObject obstacle in HelperFunctions.FindObsWithTag("Obstacle"))
         {
             string this_obstacle = obstacle.name.ToString().ToLower();
             Vector3 obstacle_position = obstacle.transform.position;
@@ -276,9 +275,9 @@ public class Recorded_script_AR_cricket : MonoBehaviour
         // Parse the values for trial setup
         trial_num = int.Parse(message.values[0].ToString());
         shape = int.Parse(message.values[1].ToString());          // This is an integer representing the index of the child object of Target obj in scene
-        scale = StringToVector3(message.values[2].ToString());    // Vector3 defining the scale of the target
-        screen_color = StringToVector4(message.values[3].ToString());    // Vector4 defining screen color in RGBA
-        target_color = StringToVector4(message.values[4].ToString());    // Vector4 defining target color in RGBA
+        scale = HelperFunctions.StringToVector3(message.values[2].ToString());    // Vector3 defining the scale of the target
+        screen_color = HelperFunctions.StringToVector4(message.values[3].ToString());    // Vector4 defining screen color in RGBA
+        target_color = HelperFunctions.StringToVector4(message.values[4].ToString());    // Vector4 defining target color in RGBA
         speed = float.Parse(message.values[5].ToString());    // Float for target speed
         acceleration = float.Parse(message.values[6].ToString());    // Float for target acceleration
         trajectory = int.Parse(message.values[7].ToString());    // Int for trajectory type
@@ -309,49 +308,6 @@ public class Recorded_script_AR_cricket : MonoBehaviour
 
     }
 
-    Vector3 StringToVector3(string sVector)
-    {
-        // Taken from user Praveen Ramanayake at https://stackoverflow.com/questions/30959419/converting-string-to-vector-in-unity
-        // Remove the parentheses
-        if (sVector.StartsWith("(") && sVector.EndsWith(")"))
-        {
-            sVector = sVector.Substring(1, sVector.Length - 2);
-        }
-
-        // split the items
-        string[] sArray = sVector.Split(',');
-
-        // store as a Vector3
-        Vector3 result = new Vector3(
-            float.Parse(sArray[0]),
-            float.Parse(sArray[1]),
-            float.Parse(sArray[2]));
-
-        return result;
-    }
-
-    Vector4 StringToVector4(string sVector)
-    {
-        // Modified from user Praveen Ramanayake at https://stackoverflow.com/questions/30959419/converting-string-to-vector-in-unity
-        // Remove the parentheses
-        if (sVector.StartsWith("(") && sVector.EndsWith(")"))
-        {
-            sVector = sVector.Substring(1, sVector.Length - 2);
-        }
-
-        // split the items
-        string[] sArray = sVector.Split(',');
-
-        // store as a Vector3
-        Vector4 result = new Vector4(
-            float.Parse(sArray[0]),
-            float.Parse(sArray[1]),
-            float.Parse(sArray[2]),
-            float.Parse(sArray[3]));
-
-        return result;
-    }
-
     void SendTrialEnd()
     {
         // Send trial end message to Python process
@@ -368,19 +324,5 @@ public class Recorded_script_AR_cricket : MonoBehaviour
         // Kill the application
         Application.Quit();
     }
-
-    // --- Helper Functions --- //
-    GameObject[] FindObsWithTag(string tag)
-    {
-        GameObject[] foundObs = GameObject.FindGameObjectsWithTag(tag);
-        Array.Sort(foundObs, CompareObNames);
-        return foundObs;
-    }
-
-    int CompareObNames(GameObject x, GameObject y)
-    {
-        return x.name.CompareTo(y.name);
-    }
-
 
 }
