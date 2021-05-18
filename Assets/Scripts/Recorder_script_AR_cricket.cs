@@ -5,7 +5,7 @@ using System.IO;
 using System;
 
 [ExecuteInEditMode]
-public class Recorded_script_AR_cricket : MonoBehaviour
+public class Recorder_script_AR_cricket : MonoBehaviour
 {
 
     // Streaming client
