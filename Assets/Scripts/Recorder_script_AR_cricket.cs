@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using System.Linq;
 using System;
 
 [ExecuteInEditMode]
@@ -95,16 +96,16 @@ public class Recorder_script_AR_cricket : MonoBehaviour
     void Update()
     {
         // For debugging only
-#if (UNITY_EDITOR)
-        counter++;
+//#if (UNITY_EDITOR)
+//        counter++;
 
-        if ((counter % 240 == 0) & trialDone)
-        {
-            targetController.SetupNewTrial();
-            inTrial = targetController.inTrial;
-            trialDone = targetController.trialDone;
-        }
-#endif
+//        if ((counter % 240 == 0) & trialDone)
+//        {
+//            targetController.SetupNewTrial();
+//            inTrial = targetController.inTrial;
+//            trialDone = targetController.trialDone;
+//        }
+//#endif
 
         // --- If in trial, check if the trial is done yet --- //
         if (inTrial)
@@ -177,25 +178,9 @@ public class Recorder_script_AR_cricket : MonoBehaviour
 
 
         // Process the real cricket position
-        // TODO implement some sort of smoothing function to correct for abberant markers
-        // since the mouse headbar occludes things
         List<OptitrackMarkerState> markerStates = StreamingClient.GetLatestMarkerStates();
-
-        foreach (OptitrackMarkerState marker in markerStates)
-        {
-            if (marker.Labeled == false)
-            {
-                //				Debug.Log (marker.Position);
-                Cricket_Position = marker.Position;
-                Cricket.transform.localPosition = Cricket_Position;
-                
-            }
-            else
-            {
-                Cricket_Position = new Vector3(10.0f, 10.0f, 10.0f);
-                Cricket.transform.localPosition = Cricket_Position;
-            }
-        }
+        Cricket_Position = GetCricketPosition(markerStates);
+        Cricket.transform.localPosition = Cricket_Position;
 
         object[] real_cricket_data = { Cricket_Position.x, Cricket_Position.y, Cricket_Position.z };
         real_cricket_string = string.Join(", ", real_cricket_data);
@@ -224,7 +209,53 @@ public class Recorder_script_AR_cricket : MonoBehaviour
     }
 
 
-    // Functions for writing header of data file
+    // --- Functions for tracking objects in the scene --- //
+    Vector3 GetCricketPosition(List<OptitrackMarkerState> markers)
+    {
+        Vector3 outputPosition;
+        List<Vector3> nonlabelledMarkers = new List<Vector3>();
+
+        foreach (OptitrackMarkerState marker in markers)
+        {
+            // Only get markers that are not labeled as part of a RigidBody
+            if (marker.Labeled == false)
+            {
+                nonlabelledMarkers.Add(marker.Position);
+                //Debug.Log (marker.Position);
+            }
+        }
+
+        //Debug.Log(nonlabelledMarkers.Count);
+
+        // Check how many unlabeled markers there are. If there is more than one, find the one closest to the previous
+        // position and use that as the cricket position. If there are none, use the last cricket position.
+        if (nonlabelledMarkers.Count == 1)
+        {
+            // If there's just a single unlabeled marker, this is our cricket
+            outputPosition = nonlabelledMarkers[0];
+        }
+        else if (nonlabelledMarkers.Count > 1)
+        {
+            // If there is more than one point detected, use the one that's closest to the previous position
+            float[] distances = new float[nonlabelledMarkers.Count];
+
+            for (int i = 0; i < nonlabelledMarkers.Count; i++)
+            {
+                distances[i] = Math.Abs(Vector3.Distance(nonlabelledMarkers[i], Cricket_Position));
+            }
+
+            int minIndex = Array.IndexOf(distances, distances.Min());
+            outputPosition = nonlabelledMarkers[minIndex];
+        }
+        else
+        {
+            // If there is no point found, reuse the current position
+            outputPosition = Cricket.transform.localPosition;
+        }
+        return outputPosition;
+    }
+
+    // --- Functions for writing header of data file --- //
     void LogSceneParams()
     {
         // handle arena corners
