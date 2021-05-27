@@ -9,24 +9,24 @@ EditorBuildSettings:
     path: 
     guid: 00000000000000000000000000000000
   - enabled: 0
-    path: Assets/Scenes/VR_preyCapture.unity
+    path: Assets/Scenes/PreyCapture/VR_preyCapture.unity
     guid: fb8649a3944dc004d884061d27dd169a
   - enabled: 0
     path: Assets/Scenes/VR_Empty.unity
     guid: b613edc652ed3a243abd4debf55db829
   - enabled: 0
-    path: Assets/Scenes/VR_preyCapture_MC.unity
+    path: Assets/Scenes/PreyCapture/VR_preyCapture_MC.unity
     guid: 0b7b6a0e8d827f044893adb40321a4af
   - enabled: 0
-    path: Assets/Scenes/VR_Screen.unity
+    path: Assets/Scenes/TargetApproach/VR_Screen.unity
     guid: 4a6546bd3d1d23c439437943dbbca94d
   - enabled: 0
-    path: Assets/Scenes/VR_Contrast_Test.unity
+    path: Assets/Scenes/UtilityTestingScenes/VR_Contrast_Test.unity
     guid: aca1069182f97be41b4b24438982eb8e
   - enabled: 0
-    path: Assets/Scenes/VR_ScreenCombi.unity
+    path: Assets/Scenes/TargetApproach/VR_ScreenCombi.unity
     guid: b89d5f188ad6d4544aa39eab5ff57fb3
   - enabled: 1
-    path: Assets/Scenes/VR_realCricket.unity
+    path: Assets/Scenes/VR_closedLoop.unity
     guid: 0824cbd605c87c14cb5cd17ba226f09a
   m_configObjects: {}

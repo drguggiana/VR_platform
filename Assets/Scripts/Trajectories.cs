@@ -5,24 +5,6 @@ using UnityEngine;
 
 public class Trajectories : MonoBehaviour {
 
-    public static Trajectories Trj;
-    public GameObject[] Starts;
-    public Transform[] StartEndPts;
-
-    void Start()
-    {
-        // Find allocated starting poitns for paths. This is sorted according to 
-        // the position conventions established for DLC
-        Starts = HelperFunctions.FindObsWithTag("Starts");
-    }
-
-   
-    void Update()
-    {
-
-    }
-
-
     public void Linear2D(Transform start, Transform end)
     {
         // This is handled by the NavMesh Agent. Just pass here
@@ -69,7 +51,7 @@ public class Trajectories : MonoBehaviour {
 
 
     // -- Helper Functions -- //
-    Transform[] StartEndPoints(Vector3 currentPosition)
+    Transform[] StartEndPoints(Vector3 currentPosition, GameObject[] StartEndPositions)
     {
         // Find the start and end points for motion. Adapted from 
         // https://answers.unity.com/questions/1236558/finding-nearest-game-object.html
@@ -85,7 +67,7 @@ public class Trajectories : MonoBehaviour {
         //currentPosition = new Vector3(-0.5f, 0.0f, -0.5f);
 
         // Find the farthest corner from the player
-        foreach (GameObject start in Starts)
+        foreach (GameObject start in StartEndPositions)
         {
             Transform start_loc = start.transform;
             Vector3 directionToTarget = start_loc.position - currentPosition;
@@ -99,7 +81,7 @@ public class Trajectories : MonoBehaviour {
 
         // Find the end point by getting the corner with the most similar
         // x coordinate (since we only go along long walls)
-        foreach (GameObject start in Starts)
+        foreach (GameObject start in StartEndPositions)
         {
             Transform start_loc = start.transform;
             float x_diff = Mathf.Abs(StartPoint.transform.position.x - start_loc.position.x);
