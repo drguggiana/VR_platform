@@ -225,8 +225,6 @@ public class Recorder_script_AR_cricket : MonoBehaviour
             }
         }
 
-        //Debug.Log(nonlabelledMarkers.Count);
-
         // Check how many unlabeled markers there are. If there is more than one, find the one closest to the previous
         // position and use that as the cricket position. If there are none, use the last cricket position.
         if (nonlabelledMarkers.Count == 1)
