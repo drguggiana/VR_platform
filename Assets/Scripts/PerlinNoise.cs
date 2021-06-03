@@ -12,8 +12,8 @@ public class PerlinNoise : MonoBehaviour
     //[Range(0.1f, 1f)]
     //public float alpha = 1f;
 
-    private int width = 256;
-    private int height = 256;
+    private int width = 512;
+    private int height = 512;
     private float offsetX;
     private float offsetY;
 
@@ -26,12 +26,14 @@ public class PerlinNoise : MonoBehaviour
 
         offsetX = Random.Range(0f, 100f);
         offsetY = Random.Range(0f, 100f);
-        
+
+        renderer.material.mainTexture = GenerateTexture();
+
     }
 
     void Update()
     {
-        renderer.material.mainTexture = GenerateTexture();
+        //renderer.material.mainTexture = GenerateTexture();
     }
 
     Texture2D GenerateTexture()

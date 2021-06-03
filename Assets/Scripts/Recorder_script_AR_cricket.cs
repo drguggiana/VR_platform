@@ -37,9 +37,9 @@ public class Recorder_script_AR_cricket : MonoBehaviour
     private float Time_stamp;
 
     // Variables for target object transforms and states
-    public GameObject TargetObj;
-    public TargetController targetController;
-    private Vector3 Target_Position;
+    //public GameObject TargetObj;
+    //public TargetController targetController;
+    //private Vector3 Target_Position;
 
     // Booleans for trial state
     private bool trialDone = true;
@@ -70,7 +70,7 @@ public class Recorder_script_AR_cricket : MonoBehaviour
     {
 
         // set the OSC communication
-        osc.SetAddressHandler("/TrialStart", OnReceiveTrialStart);
+        //osc.SetAddressHandler("/TrialStart", OnReceiveTrialStart);
         osc.SetAddressHandler("/Close", OnReceiveStop);
 
         // Force full screen on projector
@@ -108,23 +108,23 @@ public class Recorder_script_AR_cricket : MonoBehaviour
 //#endif
 
         // --- If in trial, check if the trial is done yet --- //
-        if (inTrial)
-        {
-            trialDone = targetController.trialDone;
+        //if (inTrial)
+        //{
+        //    trialDone = targetController.trialDone;
 
-            if (trialDone)
-            {
-                Debug.Log("Trial Done");
-                // Tell Python that the trial ended
-                SendTrialEnd();
-                // Reset the booleans
-                inTrial = false;
-                // Reset trial number to zero
-                trial_num = 0;
+        //    if (trialDone)
+        //    {
+        //        Debug.Log("Trial Done");
+        //        // Tell Python that the trial ended
+        //        SendTrialEnd();
+        //        // Reset the booleans
+        //        inTrial = false;
+        //        // Reset trial number to zero
+        //        trial_num = 0;
 
-                counter = 0;
-            }
-        }
+        //        counter = 0;
+        //    }
+        //}
 
 
         /* 
@@ -185,25 +185,26 @@ public class Recorder_script_AR_cricket : MonoBehaviour
         object[] real_cricket_data = { Cricket_Position.x, Cricket_Position.y, Cricket_Position.z };
         real_cricket_string = string.Join(", ", real_cricket_data);
 
-        // Process the target object position - this only tracks position
-        // TODO: Make this handle animation states if present for 3D tracking
-        if (trial_num > 0)
-        {
-            Target_Position = TargetObj.transform.position;
-        }
-        else
-        {
-            Target_Position = new Vector3(-1.0f, -1.0f, -1.0f);
-        }
+        //// Process the target object position - this only tracks position
+        //// TODO: Make this handle animation states if present for 3D tracking
+        //if (trial_num > 0)
+        //{
+        //    Target_Position = TargetObj.transform.position;
+        //}
+        //else
+        //{
+        //    Target_Position = new Vector3(-1.0f, -1.0f, -1.0f);
+        //}
 
-        // Write the target data to a string
-        object[] target_data = { Target_Position.x, Target_Position.y, Target_Position.z };
-        target_string = string.Join(", ", target_data);
+        //// Write the target data to a string
+        //object[] target_data = { Target_Position.x, Target_Position.y, Target_Position.z };
+        //target_string = string.Join(", ", target_data);
 
         // --- Data Saving --- //
 
         // Write the mouse and VR cricket info
-        object[] all_data = { Time_stamp, trial_num, mouse_string, real_cricket_string, target_string, color_factor };
+        //object[] all_data = { Time_stamp, trial_num, mouse_string, real_cricket_string, target_string, color_factor };
+        object[] all_data = { Time_stamp, trial_num, mouse_string, real_cricket_string, color_factor };
         writer.WriteLine(string.Join(", ", all_data));
 
     }
@@ -291,51 +292,50 @@ public class Recorder_script_AR_cricket : MonoBehaviour
         string[] header = {"time_m", "trial_num",
                            "mouse_x_m", "mouse_y_m", "mouse_z_m",
                            "mouse_xrot_m", "mouse_yrot_m", "mouse_zrot_m",
-                           "cricket_x_m", "cricket_y_m", "cricket_z_m",
-                           "target_x_m", "target_y_m", "target_z_m",
+                           "cricket_x_m", "cricket_y_m", "cricket_z_m",    
                            "color_factor"};
         writer.WriteLine(string.Join(", ", header));
     }
 
 
-    // --- Handle OSC Communication --- //
-    void OnReceiveTrialStart(OscMessage message)
-    {
-        // Parse the values for trial setup
-        trial_num = int.Parse(message.values[0].ToString());
-        shape = int.Parse(message.values[1].ToString());          // This is an integer representing the index of the child object of Target obj in scene
-        scale = HelperFunctions.StringToVector3(message.values[2].ToString());    // Vector3 defining the scale of the target
-        screen_color = HelperFunctions.StringToVector4(message.values[3].ToString());    // Vector4 defining screen color in RGBA
-        target_color = HelperFunctions.StringToVector4(message.values[4].ToString());    // Vector4 defining target color in RGBA
-        speed = float.Parse(message.values[5].ToString());    // Float for target speed
-        acceleration = float.Parse(message.values[6].ToString());    // Float for target acceleration
-        trajectory = int.Parse(message.values[7].ToString());    // Int for trajectory type
+    //// --- Handle OSC Communication --- //
+    //void OnReceiveTrialStart(OscMessage message)
+    //{
+    //    // Parse the values for trial setup
+    //    trial_num = int.Parse(message.values[0].ToString());
+    //    shape = int.Parse(message.values[1].ToString());          // This is an integer representing the index of the child object of Target obj in scene
+    //    scale = HelperFunctions.StringToVector3(message.values[2].ToString());    // Vector3 defining the scale of the target
+    //    screen_color = HelperFunctions.StringToVector4(message.values[3].ToString());    // Vector4 defining screen color in RGBA
+    //    target_color = HelperFunctions.StringToVector4(message.values[4].ToString());    // Vector4 defining target color in RGBA
+    //    speed = float.Parse(message.values[5].ToString());    // Float for target speed
+    //    acceleration = float.Parse(message.values[6].ToString());    // Float for target acceleration
+    //    trajectory = int.Parse(message.values[7].ToString());    // Int for trajectory type
 
-        // Set values in TrialHandler for the next trial
-        targetController.targetIndex = shape;
-        targetController.scale = scale;
-        targetController.screenColor = screen_color;
-        targetController.targetColor = target_color;
-        targetController.speed = speed;
-        targetController.acceleration = acceleration;
-        targetController.trajectory = trajectory;
+    //    // Set values in TrialHandler for the next trial
+    //    targetController.targetIndex = shape;
+    //    targetController.scale = scale;
+    //    targetController.screenColor = screen_color;
+    //    targetController.targetColor = target_color;
+    //    targetController.speed = speed;
+    //    targetController.acceleration = acceleration;
+    //    targetController.trajectory = trajectory;
 
-        // Send handshake message to Python process to confirm receipt of parameters
-        OscMessage handshake = new OscMessage
-        {
-            address = "/Handshake"
-        };
-        handshake.values.Add(trial_num);
-        osc.Send(handshake);
+    //    // Send handshake message to Python process to confirm receipt of parameters
+    //    OscMessage handshake = new OscMessage
+    //    {
+    //        address = "/Handshake"
+    //    };
+    //    handshake.values.Add(trial_num);
+    //    osc.Send(handshake);
 
-        // Set up the newest trial
-        targetController.SetupNewTrial();
+    //    // Set up the newest trial
+    //    targetController.SetupNewTrial();
 
-        // Set booleans that tell us we are now in a trial
-        inTrial = targetController.inTrial;
-        trialDone = targetController.trialDone;
+    //    // Set booleans that tell us we are now in a trial
+    //    inTrial = targetController.inTrial;
+    //    trialDone = targetController.trialDone;
 
-    }
+    //}
 
     void SendTrialEnd()
     {
