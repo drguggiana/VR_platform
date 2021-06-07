@@ -10,8 +10,8 @@ TagManager:
   - Obstacle
   - Target
   - Screen
-  - Start2D
-  - Start3D
+  - StartWall
+  - StartFloor
   layers:
   - Default
   - TransparentFX
