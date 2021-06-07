@@ -7,6 +7,7 @@ using System;
 public class TargetController : MonoBehaviour {
 
     // Public variables for trial structure, and target/screen setup
+    public Trajectories trj;
     public GameObject player;
     public Material screenMaterial;
     public Vector4 screenColor = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);     // white
@@ -50,8 +51,8 @@ public class TargetController : MonoBehaviour {
 
         // Find allocated starting points for paths. This is sorted according to 
         // the position conventions established for DLC
-        StartWall = FindObsWithTag("StartWall");
-        StartFloor = FindObsWithTag("StartFloor");
+        StartWall = HelperFunctions.FindObsWithTag("StartWall");
+        StartFloor = HelperFunctions.FindObsWithTag("StartFloor");
     }
 
     // Update is called once per frame
@@ -186,9 +187,10 @@ public class TargetController : MonoBehaviour {
         // Align target with the global up if moving along the wall
         if (trajectory < 2)
         {
-            float angularOffset = AlignGlobalUp();
+            float angularOffset = HelperFunctions.AlignGlobalUp(agent.transform, localUp, globalUp);
+            targetObj.transform.localEulerAngles = new Vector3(0f, 0f, angularOffset);
             int offsetSign = Math.Sign((double)angularOffset);
-            float aligned = AlignedTravelDirection(agent.transform.forward, globalForward);
+            float aligned = TestDirectionAlignment(agent.transform.forward, globalForward);
             int directionSign = Math.Sign((double)aligned);
 
             // Translate target so that it isn't being clipped by the wall or floor
@@ -218,34 +220,10 @@ public class TargetController : MonoBehaviour {
         targetObj.gameObject.SetActive(false);
     }
 
-    float PosNegAngle(Vector3 a1, Vector3 a2, Vector3 normal)
-    {
-        float angle = Vector3.Angle(a1, a2);
-        float sign = Mathf.Sign(Vector3.Dot(normal, Vector3.Cross(a1, a2)));
-        return angle * sign;
-    }
-
-    RaycastHit FindSurfaceNormal(Vector3 location)
-    {
-        Vector3 theRay = -localUp;
-        RaycastHit hit;
-        Physics.Raycast(location, theRay, out hit, 1f);
-        return hit;
-
-    }
-
-    float AlignGlobalUp()
-    {
-        RaycastHit hit = FindSurfaceNormal(agent.transform.position);
-        float zRot = PosNegAngle(hit.normal, globalUp, agent.transform.forward);
-        targetObj.transform.localEulerAngles = new Vector3(0f, 0f, zRot);
-        return zRot;
-    }
-
-    float AlignedTravelDirection(Vector3 direction, Vector3 testDir)
+    float TestDirectionAlignment(Vector3 currentDir, Vector3 testDir)
     {
         // +1 is perfectly aligned, 0 is perpendicular, -1 is perfectly opposite
-        float dot = Vector2.Dot(new Vector2(direction.x, direction.z), new Vector2(testDir.x, testDir.z));
+        float dot = Vector2.Dot(new Vector2(currentDir.x, currentDir.z), new Vector2(testDir.x, testDir.z));
         return dot;
     }
 
@@ -515,19 +493,6 @@ public class TargetController : MonoBehaviour {
             // assign this as the agent's next position
             agent.nextPosition = pos;
         }
-    }
-
-    // -- Helper Functions -- //
-    GameObject[] FindObsWithTag(string tag)
-    {
-        GameObject[] foundObs = GameObject.FindGameObjectsWithTag(tag);
-        Array.Sort(foundObs, CompareObNames);
-        return foundObs;
-    }
-
-    int CompareObNames(GameObject x, GameObject y)
-    {
-        return x.name.CompareTo(y.name);
     }
 
 

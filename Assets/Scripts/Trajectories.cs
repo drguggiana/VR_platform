@@ -5,24 +5,12 @@ using UnityEngine;
 
 public class Trajectories : MonoBehaviour {
 
-    public static Trajectories Trj;
-    public GameObject[] Starts;
-    public Transform[] StartEndPts;
-
-    void Start()
-    {
-        // Find allocated starting poitns for paths. This is sorted according to 
-        // the position conventions established for DLC
-        Starts = FindObsWithTag("Starts");
-    }
-
-   
-    void Linear2D(Transform start, Transform end)
+    public void Linear2D(Transform start, Transform end)
     {
         // This is handled by the NavMesh Agent. Just pass here
     }
 
-    void Sine2D(float time, Transform start, Transform end)
+    public void Sine2D(float time, Transform start, Transform end)
     {
         // Get distance between points. They should be at the same height, so this is really
         // a 2D lienar distance
@@ -46,24 +34,24 @@ public class Trajectories : MonoBehaviour {
     // --- For movement in 3D --- //
 
 
-    void Linear3D(Transform start, Transform end)
+    public void Linear3D(Transform start, Transform end)
     {
         // This is also handled by the NavMesh Agent. Just pass here
     }
 
-    void SineVert3D(Transform start, Transform end, float height)
+    public void SineVert3D(Transform start, Transform end, float height)
     {
 
     }
 
-    void SineHorz3D(Transform start, Transform end, float height)
+    public void SineHorz3D(Transform start, Transform end, float height)
     {
 
     }
 
 
     // -- Helper Functions -- //
-    Transform[] StartEndPoints(Vector3 currentPosition)
+    Transform[] StartEndPoints(Vector3 currentPosition, GameObject[] StartEndPositions)
     {
         // Find the start and end points for motion. Adapted from 
         // https://answers.unity.com/questions/1236558/finding-nearest-game-object.html
@@ -79,7 +67,7 @@ public class Trajectories : MonoBehaviour {
         //currentPosition = new Vector3(-0.5f, 0.0f, -0.5f);
 
         // Find the farthest corner from the player
-        foreach (GameObject start in Starts)
+        foreach (GameObject start in StartEndPositions)
         {
             Transform start_loc = start.transform;
             Vector3 directionToTarget = start_loc.position - currentPosition;
@@ -93,7 +81,7 @@ public class Trajectories : MonoBehaviour {
 
         // Find the end point by getting the corner with the most similar
         // x coordinate (since we only go along long walls)
-        foreach (GameObject start in Starts)
+        foreach (GameObject start in StartEndPositions)
         {
             Transform start_loc = start.transform;
             float x_diff = Mathf.Abs(StartPoint.transform.position.x - start_loc.position.x);
@@ -117,18 +105,6 @@ public class Trajectories : MonoBehaviour {
         StartEnd[1] = EndPoint;
 
         return StartEnd;
-    }
-
-    GameObject[] FindObsWithTag(string tag)
-    {
-        GameObject[] foundObs = GameObject.FindGameObjectsWithTag(tag);
-        Array.Sort(foundObs, CompareObNames);
-        return foundObs;
-    }
-
-    int CompareObNames(GameObject x, GameObject y)
-    {
-        return x.name.CompareTo(y.name);
     }
 
 }

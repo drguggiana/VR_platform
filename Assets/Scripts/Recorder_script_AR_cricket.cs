@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using System.Linq;
 using System;
 
 [ExecuteInEditMode]
-public class Recorded_script_AR_cricket : MonoBehaviour
+public class Recorder_script_AR_cricket : MonoBehaviour
 {
 
     // Streaming client
@@ -36,9 +37,9 @@ public class Recorded_script_AR_cricket : MonoBehaviour
     private float Time_stamp;
 
     // Variables for target object transforms and states
-    public GameObject TargetObj;
-    public TargetController targetController;
-    private Vector3 Target_Position;
+    //public GameObject TargetObj;
+    //public TargetController targetController;
+    //private Vector3 Target_Position;
 
     // Booleans for trial state
     private bool trialDone = true;
@@ -69,7 +70,7 @@ public class Recorded_script_AR_cricket : MonoBehaviour
     {
 
         // set the OSC communication
-        osc.SetAddressHandler("/TrialStart", OnReceiveTrialStart);
+        //osc.SetAddressHandler("/TrialStart", OnReceiveTrialStart);
         osc.SetAddressHandler("/Close", OnReceiveStop);
 
         // Force full screen on projector
@@ -83,7 +84,7 @@ public class Recorded_script_AR_cricket : MonoBehaviour
         cam.nearClipPlane = 0.000001f;
 
         // Set the writer
-        Paths.CheckFileExistence();
+        Paths.CheckFileExistence(Paths.recording_path);
         writer = new StreamWriter(Paths.recording_path, true);
 
         // Write initial parameters and header to file
@@ -95,35 +96,35 @@ public class Recorded_script_AR_cricket : MonoBehaviour
     void Update()
     {
         // For debugging only
-#if (UNITY_EDITOR)
-        counter++;
+//#if (UNITY_EDITOR)
+//        counter++;
 
-        if ((counter % 240 == 0) & trialDone)
-        {
-            targetController.SetupNewTrial();
-            inTrial = targetController.inTrial;
-            trialDone = targetController.trialDone;
-        }
-#endif
+//        if ((counter % 240 == 0) & trialDone)
+//        {
+//            targetController.SetupNewTrial();
+//            inTrial = targetController.inTrial;
+//            trialDone = targetController.trialDone;
+//        }
+//#endif
 
         // --- If in trial, check if the trial is done yet --- //
-        if (inTrial)
-        {
-            trialDone = targetController.trialDone;
+        //if (inTrial)
+        //{
+        //    trialDone = targetController.trialDone;
 
-            if (trialDone)
-            {
-                Debug.Log("Trial Done");
-                // Tell Python that the trial ended
-                SendTrialEnd();
-                // Reset the booleans
-                inTrial = false;
-                // Reset trial number to zero
-                trial_num = 0;
+        //    if (trialDone)
+        //    {
+        //        Debug.Log("Trial Done");
+        //        // Tell Python that the trial ended
+        //        SendTrialEnd();
+        //        // Reset the booleans
+        //        inTrial = false;
+        //        // Reset trial number to zero
+        //        trial_num = 0;
 
-                counter = 0;
-            }
-        }
+        //        counter = 0;
+        //    }
+        //}
 
 
         /* 
@@ -146,7 +147,6 @@ public class Recorded_script_AR_cricket : MonoBehaviour
         {
             color_factor = 1.0f;
         }
-
 
 
         // --- Handle mouse, cricket, and target data --- //
@@ -178,61 +178,90 @@ public class Recorded_script_AR_cricket : MonoBehaviour
 
 
         // Process the real cricket position
-        // TODO implement some sort of smoothing function to correct for abberant markers
-        // since the mouse headbar occludes things
         List<OptitrackMarkerState> markerStates = StreamingClient.GetLatestMarkerStates();
-
-        foreach (OptitrackMarkerState marker in markerStates)
-        {
-            if (marker.Labeled == false)
-            {
-                //				Debug.Log (marker.Position);
-                Cricket_Position = marker.Position;
-                Cricket.transform.localPosition = Cricket_Position;
-                
-            }
-            else
-            {
-                Cricket_Position = new Vector3(10.0f, 10.0f, 10.0f);
-                Cricket.transform.localPosition = Cricket_Position;
-            }
-        }
+        Cricket_Position = GetCricketPosition(markerStates);
+        Cricket.transform.localPosition = Cricket_Position;
 
         object[] real_cricket_data = { Cricket_Position.x, Cricket_Position.y, Cricket_Position.z };
         real_cricket_string = string.Join(", ", real_cricket_data);
 
-        // Process the target object position - this only tracks position
-        // TODO: Make this handle animation states if present for 3D tracking
-        if (trial_num > 0)
-        {
-            Target_Position = TargetObj.transform.position;
-        }
-        else
-        {
-            Target_Position = new Vector3(-1.0f, -1.0f, -1.0f);
-        }
+        //// Process the target object position - this only tracks position
+        //// TODO: Make this handle animation states if present for 3D tracking
+        //if (trial_num > 0)
+        //{
+        //    Target_Position = TargetObj.transform.position;
+        //}
+        //else
+        //{
+        //    Target_Position = new Vector3(-1.0f, -1.0f, -1.0f);
+        //}
 
-        // Write the target data to a string
-        object[] target_data = { Target_Position.x, Target_Position.y, Target_Position.z };
-        target_string = string.Join(", ", target_data);
+        //// Write the target data to a string
+        //object[] target_data = { Target_Position.x, Target_Position.y, Target_Position.z };
+        //target_string = string.Join(", ", target_data);
 
         // --- Data Saving --- //
 
         // Write the mouse and VR cricket info
-        object[] all_data = { Time_stamp, trial_num, mouse_string, real_cricket_string, target_string, color_factor };
+        //object[] all_data = { Time_stamp, trial_num, mouse_string, real_cricket_string, target_string, color_factor };
+        object[] all_data = { Time_stamp, trial_num, mouse_string, real_cricket_string, color_factor };
         writer.WriteLine(string.Join(", ", all_data));
 
     }
 
 
-    // Functions for writing header of data file
+    // --- Functions for tracking objects in the scene --- //
+    Vector3 GetCricketPosition(List<OptitrackMarkerState> markers)
+    {
+        Vector3 outputPosition;
+        List<Vector3> nonlabelledMarkers = new List<Vector3>();
+
+        foreach (OptitrackMarkerState marker in markers)
+        {
+            // Only get markers that are not labeled as part of a RigidBody
+            if (marker.Labeled == false)
+            {
+                nonlabelledMarkers.Add(marker.Position);
+                //Debug.Log (marker.Position);
+            }
+        }
+
+        // Check how many unlabeled markers there are. If there is more than one, find the one closest to the previous
+        // position and use that as the cricket position. If there are none, use the last cricket position.
+        if (nonlabelledMarkers.Count == 1)
+        {
+            // If there's just a single unlabeled marker, this is our cricket
+            outputPosition = nonlabelledMarkers[0];
+        }
+        else if (nonlabelledMarkers.Count > 1)
+        {
+            // If there is more than one point detected, use the one that's closest to the previous position
+            float[] distances = new float[nonlabelledMarkers.Count];
+
+            for (int i = 0; i < nonlabelledMarkers.Count; i++)
+            {
+                distances[i] = Math.Abs(Vector3.Distance(nonlabelledMarkers[i], Cricket_Position));
+            }
+
+            int minIndex = Array.IndexOf(distances, distances.Min());
+            outputPosition = nonlabelledMarkers[minIndex];
+        }
+        else
+        {
+            // If there is no point found, reuse the current position
+            outputPosition = Cricket.transform.localPosition;
+        }
+        return outputPosition;
+    }
+
+    // --- Functions for writing header of data file --- //
     void LogSceneParams()
     {
         // handle arena corners
         string[] corners = new string[4];
 
         int i = 0;
-        foreach (GameObject corner in FindObsWithTag("Corner"))
+        foreach (GameObject corner in HelperFunctions.FindObsWithTag("Corner"))
         {
             Vector3 corner_position = corner.transform.position;
             object[] corner_coord = { corner_position.x, corner_position.z };
@@ -245,7 +274,7 @@ public class Recorded_script_AR_cricket : MonoBehaviour
         writer.WriteLine(arena_corners_string);
 
         // handle any obstacles in the arena. This only logs the centroid of the obstacle
-        foreach (GameObject obstacle in FindObsWithTag("Obstacle"))
+        foreach (GameObject obstacle in HelperFunctions.FindObsWithTag("Obstacle"))
         {
             string this_obstacle = obstacle.name.ToString().ToLower();
             Vector3 obstacle_position = obstacle.transform.position;
@@ -263,94 +292,50 @@ public class Recorded_script_AR_cricket : MonoBehaviour
         string[] header = {"time_m", "trial_num",
                            "mouse_x_m", "mouse_y_m", "mouse_z_m",
                            "mouse_xrot_m", "mouse_yrot_m", "mouse_zrot_m",
-                           "cricket_x_m", "cricket_y_m", "cricket_z_m",
-                           "target_x_m", "target_y_m", "target_z_m",
+                           "cricket_x_m", "cricket_y_m", "cricket_z_m",    
                            "color_factor"};
         writer.WriteLine(string.Join(", ", header));
     }
 
 
-    // --- Handle OSC Communication --- //
-    void OnReceiveTrialStart(OscMessage message)
-    {
-        // Parse the values for trial setup
-        trial_num = int.Parse(message.values[0].ToString());
-        shape = int.Parse(message.values[1].ToString());          // This is an integer representing the index of the child object of Target obj in scene
-        scale = StringToVector3(message.values[2].ToString());    // Vector3 defining the scale of the target
-        screen_color = StringToVector4(message.values[3].ToString());    // Vector4 defining screen color in RGBA
-        target_color = StringToVector4(message.values[4].ToString());    // Vector4 defining target color in RGBA
-        speed = float.Parse(message.values[5].ToString());    // Float for target speed
-        acceleration = float.Parse(message.values[6].ToString());    // Float for target acceleration
-        trajectory = int.Parse(message.values[7].ToString());    // Int for trajectory type
+    //// --- Handle OSC Communication --- //
+    //void OnReceiveTrialStart(OscMessage message)
+    //{
+    //    // Parse the values for trial setup
+    //    trial_num = int.Parse(message.values[0].ToString());
+    //    shape = int.Parse(message.values[1].ToString());          // This is an integer representing the index of the child object of Target obj in scene
+    //    scale = HelperFunctions.StringToVector3(message.values[2].ToString());    // Vector3 defining the scale of the target
+    //    screen_color = HelperFunctions.StringToVector4(message.values[3].ToString());    // Vector4 defining screen color in RGBA
+    //    target_color = HelperFunctions.StringToVector4(message.values[4].ToString());    // Vector4 defining target color in RGBA
+    //    speed = float.Parse(message.values[5].ToString());    // Float for target speed
+    //    acceleration = float.Parse(message.values[6].ToString());    // Float for target acceleration
+    //    trajectory = int.Parse(message.values[7].ToString());    // Int for trajectory type
 
-        // Set values in TrialHandler for the next trial
-        targetController.targetIndex = shape;
-        targetController.scale = scale;
-        targetController.screenColor = screen_color;
-        targetController.targetColor = target_color;
-        targetController.speed = speed;
-        targetController.acceleration = acceleration;
-        targetController.trajectory = trajectory;
+    //    // Set values in TrialHandler for the next trial
+    //    targetController.targetIndex = shape;
+    //    targetController.scale = scale;
+    //    targetController.screenColor = screen_color;
+    //    targetController.targetColor = target_color;
+    //    targetController.speed = speed;
+    //    targetController.acceleration = acceleration;
+    //    targetController.trajectory = trajectory;
 
-        // Send handshake message to Python process to confirm receipt of parameters
-        OscMessage handshake = new OscMessage
-        {
-            address = "/Handshake"
-        };
-        handshake.values.Add(trial_num);
-        osc.Send(handshake);
+    //    // Send handshake message to Python process to confirm receipt of parameters
+    //    OscMessage handshake = new OscMessage
+    //    {
+    //        address = "/Handshake"
+    //    };
+    //    handshake.values.Add(trial_num);
+    //    osc.Send(handshake);
 
-        // Set up the newest trial
-        targetController.SetupNewTrial();
+    //    // Set up the newest trial
+    //    targetController.SetupNewTrial();
 
-        // Set booleans that tell us we are now in a trial
-        inTrial = targetController.inTrial;
-        trialDone = targetController.trialDone;
+    //    // Set booleans that tell us we are now in a trial
+    //    inTrial = targetController.inTrial;
+    //    trialDone = targetController.trialDone;
 
-    }
-
-    Vector3 StringToVector3(string sVector)
-    {
-        // Taken from user Praveen Ramanayake at https://stackoverflow.com/questions/30959419/converting-string-to-vector-in-unity
-        // Remove the parentheses
-        if (sVector.StartsWith("(") && sVector.EndsWith(")"))
-        {
-            sVector = sVector.Substring(1, sVector.Length - 2);
-        }
-
-        // split the items
-        string[] sArray = sVector.Split(',');
-
-        // store as a Vector3
-        Vector3 result = new Vector3(
-            float.Parse(sArray[0]),
-            float.Parse(sArray[1]),
-            float.Parse(sArray[2]));
-
-        return result;
-    }
-
-    Vector4 StringToVector4(string sVector)
-    {
-        // Modified from user Praveen Ramanayake at https://stackoverflow.com/questions/30959419/converting-string-to-vector-in-unity
-        // Remove the parentheses
-        if (sVector.StartsWith("(") && sVector.EndsWith(")"))
-        {
-            sVector = sVector.Substring(1, sVector.Length - 2);
-        }
-
-        // split the items
-        string[] sArray = sVector.Split(',');
-
-        // store as a Vector3
-        Vector4 result = new Vector4(
-            float.Parse(sArray[0]),
-            float.Parse(sArray[1]),
-            float.Parse(sArray[2]),
-            float.Parse(sArray[3]));
-
-        return result;
-    }
+    //}
 
     void SendTrialEnd()
     {
@@ -368,19 +353,5 @@ public class Recorded_script_AR_cricket : MonoBehaviour
         // Kill the application
         Application.Quit();
     }
-
-    // --- Helper Functions --- //
-    GameObject[] FindObsWithTag(string tag)
-    {
-        GameObject[] foundObs = GameObject.FindGameObjectsWithTag(tag);
-        Array.Sort(foundObs, CompareObNames);
-        return foundObs;
-    }
-
-    int CompareObNames(GameObject x, GameObject y)
-    {
-        return x.name.CompareTo(y.name);
-    }
-
 
 }
