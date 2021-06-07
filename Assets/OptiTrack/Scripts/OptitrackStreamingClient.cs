@@ -1,6 +1,18 @@
-﻿//======================================================================================================
-// Copyright 2016, NaturalPoint Inc.
-//======================================================================================================
+﻿/* 
+Copyright © 2016 NaturalPoint Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License. 
+*/
 
 using System;
 using System.Collections.Generic;
@@ -20,6 +32,12 @@ public enum OptitrackBoneNameConvention
     BVH,
 }
 
+public enum StreamingCoordinatesValues
+{
+    Local,
+    Global
+}
+
 
 /// <summary>Describes the position and orientation of a streamed tracked object.</summary>
 public class OptitrackPose
@@ -33,10 +51,12 @@ public class OptitrackPose
 /// <summary>Represents the state of a streamed marker.</summary>
 public class OptitrackMarkerState
 {
+    public string Name;
     public Vector3 Position;
     public float Size;
     public bool Labeled;
     public Int32 Id;
+    public bool IsActive;
 }
 
 
@@ -53,6 +73,7 @@ public class OptitrackSkeletonState
 {
     /// <summary>Maps from OptiTrack bone IDs to their corresponding bone poses.</summary>
     public Dictionary<Int32, OptitrackPose> BonePoses;
+    public Dictionary<Int32, OptitrackPose> LocalBonePoses;
 }
 
 
@@ -98,6 +119,15 @@ public class OptitrackSkeletonDefinition
 
     /// <summary>Bone names, hierarchy, and neutral pose position information.</summary>
     public List<BoneDefinition> Bones;
+
+    /// <summary>Bone hierarchy information</summary>
+    public Dictionary<Int32, Int32> BoneIdToParentIdMap;
+}
+
+public class OptitrackMarkersDefinition
+{
+    /// <summary>The name of this bone.</summary>
+    public string Name;
 }
 
 
@@ -142,16 +172,40 @@ public class OptitrackStreamingClient : MonoBehaviour
         Unicast
     }
 
+    [Header("Connection Settings")]
 
-    public ClientConnectionType ConnectionType;
-    public string LocalAddress = "127.0.0.1";
+    [Tooltip("The Streaming IP (Local Interface) in Motive")]
     public string ServerAddress = "127.0.0.1";
-    public UInt16 ServerCommandPort = NatNetConstants.DefaultCommandPort;
-    public UInt16 ServerDataPort = NatNetConstants.DefaultDataPort;
-    public bool DrawMarkers = false;
+
+    [Tooltip("Must be on the same network as the Streaming IP (Local Interface) in Motive.")]
+    public string LocalAddress = "127.0.0.1";
+
+    [Tooltip("Unicast performs subscription reducing your overall data set in some applications.")]
+    public ClientConnectionType ConnectionType;
+
+    [Tooltip("Controls whether skeleton data is streamed with local or global coordinates.")]
+    public StreamingCoordinatesValues SkeletonCoordinates = StreamingCoordinatesValues.Local;
+
+    [Tooltip("Controls the Bone Naming Convention in the streamed data.")]
     public OptitrackBoneNameConvention BoneNamingConvention = OptitrackBoneNameConvention.Motive;
 
+    [Header("Extra Features")]
+
+    [Tooltip("Draws marker visuals in the viewport for debugging and other uses. Using this will increase the data rate in Unicast mode.")]
+    public bool DrawMarkers = false;
+    
+    [Tooltip("Motive will record when the Unity project is played.")]
+    public bool RecordOnPlay = false;
+    
+    [Tooltip("Skips getting data descriptions. Skeletons will not work with this feature turned on, but it will reduce network usage with a large number of rigid bodies.")]
+    public bool SkipDataDescriptions = false;
+
+
     #region Private fields
+    //private UInt16 ServerCommandPort = NatNetConstants.DefaultCommandPort;
+    //private UInt16 ServerDataPort = NatNetConstants.DefaultDataPort;
+
+    private bool m_doneSubscriptionNotice = false;
     private bool m_receivedFrameSinceConnect = false;
     private OptitrackHiResTimer.Timestamp m_lastFrameDeliveryTimestamp;
     private Coroutine m_connectionHealthCoroutine = null;
@@ -160,6 +214,7 @@ public class OptitrackStreamingClient : MonoBehaviour
     private NatNetClient.DataDescriptions m_dataDescs;
     private List<OptitrackRigidBodyDefinition> m_rigidBodyDefinitions = new List<OptitrackRigidBodyDefinition>();
     private List<OptitrackSkeletonDefinition> m_skeletonDefinitions = new List<OptitrackSkeletonDefinition>();
+    private List<OptitrackMarkersDefinition> m_markersDefinitions = new List<OptitrackMarkersDefinition>();
 
     /// <summary>Maps from a streamed rigid body's ID to its most recent available pose data.</summary>
     private Dictionary<Int32, OptitrackRigidBodyState> m_latestRigidBodyStates = new Dictionary<Int32, OptitrackRigidBodyState>();
@@ -169,6 +224,12 @@ public class OptitrackStreamingClient : MonoBehaviour
 
     /// <summary>Maps from a streamed marker's ID to its most recent available position.</summary>
     private Dictionary<Int32, OptitrackMarkerState> m_latestMarkerStates = new Dictionary<Int32, OptitrackMarkerState>();
+
+    /// <summary>Maps from a streamed rigid body's ID to its component.</summary>
+    private Dictionary<Int32, MonoBehaviour> m_rigidBodies = new Dictionary<Int32, MonoBehaviour>();
+
+    /// <summary>Maps from a streamed skeleton names to its component.</summary>
+    private Dictionary<string, MonoBehaviour> m_skeletons = new Dictionary<string, MonoBehaviour>();
 
     /// <summary>Maps from a streamed marker's ID to its sphere game object. Used for drawing markers.</summary>
     private Dictionary<Int32, GameObject> m_latestMarkerSpheres = new Dictionary<Int32, GameObject>();
@@ -185,6 +246,11 @@ public class OptitrackStreamingClient : MonoBehaviour
     {
         if (DrawMarkers)
         {
+            if (m_client != null && ConnectionType == ClientConnectionType.Unicast)
+            {
+                SubscribeMarkers();
+            }
+
             List<Int32> markerIds = new List<Int32>();
             lock (m_frameDataUpdateLock)
             {
@@ -201,6 +267,12 @@ public class OptitrackStreamingClient : MonoBehaviour
                         sphere.transform.parent = this.transform;
                         sphere.transform.localScale = new Vector3( markerEntry.Value.Size, markerEntry.Value.Size, markerEntry.Value.Size );
                         sphere.transform.position = markerEntry.Value.Position;
+                        sphere.name = markerEntry.Value.Name;
+                        if (markerEntry.Value.IsActive)
+                        {
+                            // Make active markers cyan colored
+                            sphere.GetComponent<Renderer>().material.SetColor("_Color", Color.cyan);
+                        }
                         m_latestMarkerSpheres[markerEntry.Key] = sphere;
                     }
                     markerIds.Add( markerEntry.Key );
@@ -260,20 +332,58 @@ public class OptitrackStreamingClient : MonoBehaviour
         return allClients[0];
     }
 
+    /// <summary>
+    /// Sends a message to Motive to start recording
+    /// </summary>
+    /// <returns>A boolean indicating if message was successful.</returns>
+    public bool StartRecording()
+    {
+        if(m_client != null)
+        {
+            return m_client.RequestCommand("StartRecording");
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Sends a message to Motive to stop recording
+    /// </summary>
+    /// <returns>A boolean indicating if message was successful.</returns>
+    public bool StopRecording()
+    {
+        if (m_client != null)
+        {
+            return m_client.RequestCommand("StopRecording");
+        }
+        return false;
+    }
+
 
     /// <summary>Get the most recently received state for the specified rigid body.</summary>
     /// <param name="rigidBodyId">Corresponds to the "User ID" field in Motive.</param>
     /// <returns>The most recent available state, or null if none available.</returns>
-    public OptitrackRigidBodyState GetLatestRigidBodyState( Int32 rigidBodyId )
+    public OptitrackRigidBodyState GetLatestRigidBodyState( Int32 rigidBodyId, bool networkCompensation = true)
     {
         OptitrackRigidBodyState rbState;
 
-        lock ( m_frameDataUpdateLock )
-		{
-        	m_latestRigidBodyStates.TryGetValue( rigidBodyId, out rbState );
-		}
+        if ( ! networkCompensation || m_client == null )
+        {
+            lock ( m_frameDataUpdateLock )
+            {
+                m_latestRigidBodyStates.TryGetValue( rigidBodyId, out rbState );
+            }
+        }
+        else
+        {
+            sRigidBodyData rbData;
+            m_client.GetPredictedRigidBodyPose( rigidBodyId, out rbData, 0.0 );
+
+            rbState = new OptitrackRigidBodyState();
+            RigidBodyDataToState( rbData, OptitrackHiResTimer.Now(), rbState );
+        }
+
         return rbState;
-    }
+    }   
 
 
     /// <summary>Get the most recently received state for the specified skeleton.</summary>
@@ -356,6 +466,23 @@ public class OptitrackStreamingClient : MonoBehaviour
         return null;
     }
 
+    /// <summary>Retrieves the definition of the skeleton with the specified skeleton id.</summary>
+    /// <param name="skeletonId">The id of the skeleton for which to retrieve the definition.</param>
+    /// <returns>The specified skeleton definition, or null if not found.</returns>
+    public OptitrackSkeletonDefinition GetSkeletonDefinitionById( Int32 skeletonId )
+    {
+        for (int i = 0; i < m_skeletonDefinitions.Count; ++i)
+        {
+            OptitrackSkeletonDefinition skelDef = m_skeletonDefinitions[i];
+
+            if (skelDef.Id == skeletonId)
+            {
+                return skelDef;
+            }
+        }
+
+        return null;
+    }
 
     /// <summary>Request data descriptions from the host, then update our definitions.</summary>
     /// <exception cref="NatNetException">
@@ -364,12 +491,21 @@ public class OptitrackStreamingClient : MonoBehaviour
     public void UpdateDefinitions()
     {
         // This may throw an exception if the server request times out or otherwise fails.
-        m_dataDescs = m_client.GetDataDescriptions();
+        UInt32 descriptionTypeMask = 0;
+        descriptionTypeMask |= (1 << (int)NatNetDataDescriptionType.NatNetDataDescriptionType_RigidBody);
+        descriptionTypeMask |= (1 << (int)NatNetDataDescriptionType.NatNetDataDescriptionType_Skeleton);
+        if (DrawMarkers)
+        {
+            descriptionTypeMask |= (1 << (int)NatNetDataDescriptionType.NatNetDataDescriptionType_MarkerSet);
+        }
+        m_dataDescs = m_client.GetDataDescriptions(descriptionTypeMask); //
 
         m_rigidBodyDefinitions.Clear();
         m_skeletonDefinitions.Clear();
 
-        // Translate rigid body definitions.
+        // ----------------------------------
+        // - Translate Rigid Body Definitions
+        // ----------------------------------
         for ( int nativeRbDescIdx = 0; nativeRbDescIdx < m_dataDescs.RigidBodyDescriptions.Count; ++nativeRbDescIdx )
         {
             sRigidBodyDescription nativeRb = m_dataDescs.RigidBodyDescriptions[nativeRbDescIdx];
@@ -396,7 +532,7 @@ public class OptitrackStreamingClient : MonoBehaviour
 
                 OptitrackRigidBodyDefinition.MarkerDefinition markerDef =
                     new OptitrackRigidBodyDefinition.MarkerDefinition {
-                        Position = new Vector3( nativePos.Values[0], nativePos.Values[1], nativePos.Values[2] ),
+                        Position = new Vector3( -nativePos.Values[0], nativePos.Values[1], nativePos.Values[2] ),
                         RequiredLabel = nativeLabel,
                     };
 
@@ -406,7 +542,9 @@ public class OptitrackStreamingClient : MonoBehaviour
             m_rigidBodyDefinitions.Add( rbDef );
         }
 
-        // Translate skeleton definitions.
+        // ----------------------------------
+        // - Translate Skeleton Definitions
+        // ----------------------------------
         for ( int nativeSkelDescIdx = 0; nativeSkelDescIdx < m_dataDescs.SkeletonDescriptions.Count; ++nativeSkelDescIdx )
         {
             sSkeletonDescription nativeSkel = m_dataDescs.SkeletonDescriptions[nativeSkelDescIdx];
@@ -414,7 +552,8 @@ public class OptitrackStreamingClient : MonoBehaviour
             OptitrackSkeletonDefinition skelDef = new OptitrackSkeletonDefinition {
                 Id = nativeSkel.Id,
                 Name = nativeSkel.Name,
-                Bones = new List<OptitrackSkeletonDefinition.BoneDefinition>( nativeSkel.RigidBodyCount ),
+                Bones = new List<OptitrackSkeletonDefinition.BoneDefinition>(nativeSkel.RigidBodyCount),
+                BoneIdToParentIdMap = new Dictionary<int, int>(),
             };
 
             // Populate nested bone definitions.
@@ -431,10 +570,81 @@ public class OptitrackStreamingClient : MonoBehaviour
                     };
 
                 skelDef.Bones.Add( boneDef );
+                skelDef.BoneIdToParentIdMap[boneDef.Id] = boneDef.ParentId;
             }
 
             m_skeletonDefinitions.Add( skelDef );
         }
+
+        // ----------------------------------
+        // - Get Marker Definitions (ToDo)
+        // ----------------------------------
+        //for (int markersetNumber = 0; markersetNumber < m_dataDescs.MarkerSetDescriptions.Count; ++markersetNumber)
+        //{ 
+        //    sMarkerSetDescription markerDescription = m_dataDescs.MarkerSetDescriptions[markersetNumber];
+
+        //    if(markerDescription.Name == "all")
+        //    {
+        //        Int32 nMarkers = markerDescription.MarkerCount;
+
+        //        for( int i = 0; i < nMarkers; ++i)
+        //        {
+        //            int nameOffset = i * NatNetConstants.MaxNameLength; //Marshal.SizeOf(typeof(Char**));
+        //            IntPtr namePtr = new IntPtr(markerDescription.MarkerNames.ToInt64() + nameOffset);
+
+        //            // FIXME: Need to de-construct the char array of names to use for marker naming later. 
+        //            // This throws an exception, thus doesn't work. 
+        //            // MarkerNames is a char** of size [MarkerCount][MaxNameLength]
+        //            //string nativeLabel = Marshal.PtrToStringAnsi(namePtr);
+        //        }
+
+        //        OptitrackMarkersDefinition markersDef = new OptitrackMarkersDefinition
+        //        {
+        //            Name = markerDescription.Name
+
+        //        };
+
+        //        m_markersDefinitions.Add(markersDef);
+        //    }
+        //}
+
+        
+
+    }
+
+
+    public void RegisterRigidBody( MonoBehaviour component, Int32 rigidBodyId )
+    {
+        if ( m_rigidBodies.ContainsKey( rigidBodyId ) )
+        {
+#if false
+            MonoBehaviour existingRb = m_rigidBodies[rigidBodyId];
+            Debug.LogError( GetType().FullName + ": " + rb.GetType().FullName + " has duplicate rigid body ID " + rigidBodyId, component );
+            Debug.LogError( GetType().FullName + ": (Existing " + existingRb.GetType().FullName + " was already registered with that ID)", existingRb );
+            rb.enabled = false;
+#endif
+            return;
+        }
+
+        m_rigidBodies[rigidBodyId] = component;
+
+        SubscribeRigidBody(component, rigidBodyId);
+    }
+
+    public void RegisterSkeleton(MonoBehaviour component, string name)
+    {
+        if (m_skeletons.ContainsKey(name))
+        {
+#if false
+            MonoBehaviour existingSkel = m_skeletons[rigidBodyId];
+            Debug.LogError( "Duplicate skeleton detected, " + GetType().FullName + ": (Existing " + existingRb.GetType().FullName + " was already registered with that ID)", existingRb );
+#endif
+            return;
+        }
+
+        m_skeletons[name] = component;
+
+        SubscribeSkeleton(component, name);
     }
 
 
@@ -462,7 +672,61 @@ public class OptitrackStreamingClient : MonoBehaviour
         {
             m_client = new NatNetClient();
             m_client.Connect( connType, localAddr, serverAddr );
-            UpdateDefinitions();
+            
+            // Remotely change the Skeleton Coordinate property to Global/Local
+            if (SkeletonCoordinates == StreamingCoordinatesValues.Global) 
+            {
+                m_client.RequestCommand("SetProperty,,Skeleton Coordinates,false");
+            }
+            else
+            {
+                m_client.RequestCommand("SetProperty,,Skeleton Coordinates,true");
+            }
+
+            // Remotely change the Bone Naming Convention to Motive/FBX/BVH 
+            if(BoneNamingConvention == OptitrackBoneNameConvention.Motive)
+            {
+                m_client.RequestCommand("SetProperty,,Bone Naming Convention,0");
+            }
+            else if (BoneNamingConvention == OptitrackBoneNameConvention.FBX)
+            {
+                m_client.RequestCommand("SetProperty,,Bone Naming Convention,1");
+            }
+            else if (BoneNamingConvention == OptitrackBoneNameConvention.BVH)
+            {
+                m_client.RequestCommand("SetProperty,,Bone Naming Convention,2");
+            }
+
+            // Make sure that remotely setting the properties has time to complete. 
+            Thread.Sleep(100);
+
+            if (!SkipDataDescriptions)
+            {
+                UpdateDefinitions();
+            }
+
+            if (ConnectionType == ClientConnectionType.Unicast)
+            {
+                // Clear all subscriptions
+                ResetStreamingSubscriptions();
+
+                // Re-subscribe to rigid bodies and/or skeletons in which the streaming client has data
+                foreach (KeyValuePair<Int32, MonoBehaviour> rb in m_rigidBodies)
+                {
+                    SubscribeRigidBody(rb.Value, rb.Key);
+                }
+                foreach (KeyValuePair<string, MonoBehaviour> skel in m_skeletons)
+                {
+                    SubscribeSkeleton(skel.Value, skel.Key);
+                }
+            }
+
+
+            if ( RecordOnPlay == true )
+            {
+                StartRecording();
+            }
+
         }
         catch ( Exception ex )
         {
@@ -486,6 +750,11 @@ public class OptitrackStreamingClient : MonoBehaviour
         {
             StopCoroutine( m_connectionHealthCoroutine );
             m_connectionHealthCoroutine = null;
+        }
+
+        if (RecordOnPlay == true)
+        {
+            StopRecording();
         }
 
         m_client.NativeFrameReceived -= OnNatNetFrameReceived;
@@ -551,7 +820,7 @@ public class OptitrackStreamingClient : MonoBehaviour
     }
 
 
-    #region Private methods
+#region Private methods
     /// <summary>
     /// Event handler for NatNet frame delivery. Updates our simplified state representations.
     /// NOTE: This executes in the context of the NatNetLib network service thread!
@@ -583,7 +852,20 @@ public class OptitrackStreamingClient : MonoBehaviour
             IntPtr pFrame = eventArgs.NativeFramePointer;
             NatNetError result = NatNetError.NatNetError_OK;
 
-            // Update rigid bodies.
+            // get timestamp
+            UInt64 transmitTimestamp;
+            result = NaturalPoint.NatNetLib.NativeMethods.NatNet_Frame_GetTransmitTimestamp(pFrame, out transmitTimestamp);
+
+            // get and decode timecode (if available)
+            UInt32 timecode;
+            UInt32 timecodeSubframe;
+            result = NaturalPoint.NatNetLib.NativeMethods.NatNet_Frame_GetTimecode(pFrame, out timecode, out timecodeSubframe);
+            Int32 hour, minute, second, frameNumber, subframeNumber;
+            NaturalPoint.NatNetLib.NativeMethods.NatNet_DecodeTimecode(timecode, timecodeSubframe, out hour, out minute, out second, out frameNumber, out subframeNumber);
+
+            // ----------------------
+            // - Update rigid bodies
+            // ----------------------
             Int32 frameRbCount;
             result = NaturalPoint.NatNetLib.NativeMethods.NatNet_Frame_GetRigidBodyCount( pFrame, out frameRbCount );
             NatNetException.ThrowIfNotOK( result, "NatNet_Frame_GetRigidBodyCount failed." );
@@ -602,15 +884,13 @@ public class OptitrackStreamingClient : MonoBehaviour
 
                 // Ensure we have a state corresponding to this rigid body ID.
                 OptitrackRigidBodyState rbState = GetOrCreateRigidBodyState( rbData.Id );
-
-                rbState.DeliveryTimestamp = OptitrackHiResTimer.Now();
-
-                // Flip coordinate handedness from right to left by inverting X and W.
-                rbState.Pose.Position = new Vector3( -rbData.X, rbData.Y, rbData.Z );
-                rbState.Pose.Orientation = new Quaternion( -rbData.QX, rbData.QY, rbData.QZ, -rbData.QW );
+                RigidBodyDataToState(rbData, OptitrackHiResTimer.Now(), rbState);
             }
 
-            // Update skeletons.
+
+            // ----------------------
+            // - Update skeletons
+            // ----------------------
             Int32 frameSkeletonCount;
             result = NaturalPoint.NatNetLib.NativeMethods.NatNet_Frame_GetSkeletonCount( pFrame, out frameSkeletonCount );
             NatNetException.ThrowIfNotOK( result, "NatNet_Frame_GetSkeletonCount failed." );
@@ -646,17 +926,45 @@ public class OptitrackStreamingClient : MonoBehaviour
                     {
                         skelState.BonePoses[boneId] = new OptitrackPose();
                     }
+                    if (skelState.LocalBonePoses.ContainsKey( boneId ) == false)
+                    {
+                        skelState.LocalBonePoses[boneId] = new OptitrackPose();
+                    }
 
                     // Flip coordinate handedness from right to left by inverting X and W.
-                    skelState.BonePoses[boneId].Position = new Vector3( -boneData.X, boneData.Y, boneData.Z );
-                    skelState.BonePoses[boneId].Orientation = new Quaternion( -boneData.QX, boneData.QY, boneData.QZ, -boneData.QW );
+                    Vector3 bonePos = new Vector3(-boneData.X, boneData.Y, boneData.Z);
+                    Quaternion boneOri = new Quaternion(-boneData.QX, boneData.QY, boneData.QZ, -boneData.QW);
+                    skelState.BonePoses[boneId].Position = bonePos;
+                    skelState.BonePoses[boneId].Orientation = boneOri;
+
+                    Vector3 parentBonePos = new Vector3(0,0,0);
+                    Quaternion parentBoneOri = new Quaternion(0,0,0,1);
+
+                    OptitrackSkeletonDefinition skelDef = GetSkeletonDefinitionById(skeletonId);
+                    if (skelDef == null)
+                    {
+                        Debug.LogError(GetType().FullName + ": OnNatNetFrameReceived, no corresponding skeleton definition for received skeleton frame data.", this);
+                        continue;
+                    }
+
+                    Int32 pId = skelDef.BoneIdToParentIdMap[boneId];
+                    if (pId != 0)
+                    {
+                        parentBonePos = skelState.BonePoses[pId].Position;
+                        parentBoneOri = skelState.BonePoses[pId].Orientation;
+                    }
+                    skelState.LocalBonePoses[boneId].Position = bonePos - parentBonePos;
+                    skelState.LocalBonePoses[boneId].Orientation = Quaternion.Inverse(parentBoneOri) * boneOri;
                 }
             }
 
-            // Update markers
+
+            // ----------------------
+            // - Update markers
+            // ----------------------
             Int32 MarkerCount;
             result = NaturalPoint.NatNetLib.NativeMethods.NatNet_Frame_GetLabeledMarkerCount( pFrame, out MarkerCount );
-            NatNetException.ThrowIfNotOK( result, "NatNet_Frame_GetSkeletonCount failed." );
+            NatNetException.ThrowIfNotOK( result, "NatNet_Frame_GetLabeledMarkerCount failed.");
 
             m_latestMarkerStates.Clear();
 
@@ -667,12 +975,13 @@ public class OptitrackStreamingClient : MonoBehaviour
                 NatNetException.ThrowIfNotOK( result, "NatNet_Frame_GetLabeledMarker failed." );
 
                 // Flip coordinate handedness
-                Vector3 markerPos = new Vector3(-marker.X, marker.Y, marker.Z);
                 OptitrackMarkerState markerState = GetOrCreateMarkerState( marker.Id );
-                markerState.Position = markerPos;
+                markerState.Name = GetMarkerName( marker );
+                markerState.Position = new Vector3( -marker.X, marker.Y, marker.Z );
                 markerState.Size = marker.Size;
                 markerState.Labeled = (marker.Params & 0x10) == 0;
                 markerState.Id = marker.Id;
+                markerState.IsActive = (marker.Params & 0x20) != 0;
             }
         }
         catch (Exception ex)
@@ -683,6 +992,178 @@ public class OptitrackStreamingClient : MonoBehaviour
         finally
         {
             Monitor.Exit( m_frameDataUpdateLock );
+        }
+    }
+
+    private string GetMarkerName( sMarker marker )
+    {
+        int hashKey = marker.Id.GetHashCode();
+        int assetID = marker.Id.GetHashCode() >> 16; // high word = Asset ID Number
+        int memberID = marker.Id.GetHashCode() & 0x0000ff; // low word = Member ID Number (constraint number)
+
+        // Figure out the asset name if it exists. 
+        string assetName = "";
+        OptitrackRigidBodyDefinition rigidBodyDef = GetRigidBodyDefinitionById( assetID );
+        OptitrackSkeletonDefinition skeletonDef = GetSkeletonDefinitionById(assetID);
+
+        if (rigidBodyDef != null)
+        {
+            assetName = rigidBodyDef.Name;
+        }
+        else if (skeletonDef != null)
+        {
+            assetName = skeletonDef.Name;
+        }
+
+        // Figure out if the marker is labeled or active
+        bool IsLabeled = (marker.Params & 0x10) == 0;
+        bool IsActive = (marker.Params & 0x20) != 0;
+        string name = "";
+
+        // Go through the possible naming conventions for the marker
+        if (IsActive)
+        {
+            name = "Active " + marker.Id.ToString();
+        }
+        else //Passive
+        {
+            if (!IsLabeled || assetName == "")
+            {
+                name = "Passive (PointCloud ID: " + marker.Id + ")";
+            }
+            else
+            {
+                //name = "Passive (AssetID: " + assetID + "  MemberID: " + memberID + ")";
+                name = "(" + assetName + "  Marker: " + memberID + ")";
+            }
+        }
+
+        return name;
+    }
+
+    private void RigidBodyDataToState(sRigidBodyData rbData, OptitrackHiResTimer.Timestamp timestamp, OptitrackRigidBodyState rbState)
+    {
+        rbState.DeliveryTimestamp = timestamp;
+        rbState.Pose = new OptitrackPose
+        {
+            Position = new Vector3(-rbData.X, rbData.Y, rbData.Z),
+            Orientation = new Quaternion(-rbData.QX, rbData.QY, rbData.QZ, -rbData.QW),
+        };
+    }
+
+    private void ResetStreamingSubscriptions()
+    {
+        m_client.RequestCommand( "SubscribeToData" ); // Clear all filters
+        m_client.RequestCommand( "SubscribeToData,AllTypes,None" ); // Unsubscribe from all data by default
+    }
+
+
+    private void SubscribeRigidBody( MonoBehaviour component, Int32 rigidBodyId )
+    {
+        if ( m_client != null && ConnectionType == ClientConnectionType.Unicast )
+        {
+            // Try subscribing up to 3 times with a 2000 ms timeout before giving up. 
+            bool subscribeSucceeded = m_client.RequestCommand( "SubscribeByID,RigidBody," + rigidBodyId, 2000, 3 );
+
+            // Log a warning on the first failure.
+            if ( ! subscribeSucceeded && ! m_doneSubscriptionNotice )
+            {
+                if ( m_client.ServerDescription.HostApp == "Motive" )
+                {
+                    // Host app is Motive: If new enough to support subscription, failure is an error.
+                    // Otherwise, warn them that they may want to update Motive to reduce bandwidth consumption.
+                    if ( m_client.ServerAppVersion >= new Version(2, 2, 0) )
+                    {
+                        Debug.LogError( "Failed to subscribe to rigid body streaming data for component", component);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Your version of Motive is too old to support NatNet rigid body data subscription; streaming bandwidth consumption may be higher than necessary. This feature works in Motive 2.2.0+.");
+                    }
+                }
+                else
+                {
+                    // Not Motive, we don't know whether it "should" support this. Warning instead of error.
+                    Debug.LogWarning( "Failed to subscribe to rigid body streaming data for component", component );
+                }
+
+                m_doneSubscriptionNotice = true;
+            }
+        }
+    }
+
+    private void SubscribeSkeleton(MonoBehaviour component, string name )
+    {
+        if (m_client != null && ConnectionType == ClientConnectionType.Unicast)
+        {
+            if (m_client.ServerAppVersion >= new Version(2, 2, 1))
+            {
+                // Try subscribing up to 3 times with a 2000 ms timeout before giving up. 
+                bool subscribeSucceeded = m_client.RequestCommand("SubscribeToData,Skeleton," + name, 2000, 3);
+
+                // Log a warning on the first failure.
+                if (!subscribeSucceeded && !m_doneSubscriptionNotice)
+                {
+                    Debug.LogError("Failed to subscribe to skeleton streaming data for component", component);
+                    m_doneSubscriptionNotice = true;
+                }
+            }
+            else if (m_client.ServerAppVersion == new Version(2, 2, 0, 0))
+            {
+                // Motive 2.2.0 has a bug were Motive says it subscribes successfully, but doesn't.
+                // Subscribing to all skeletons still works, so for this version that is done instead. 
+
+                // Try subscribing up to 3 times with a 2000 ms timeout before giving up. 
+                bool subscribeSucceeded = m_client.RequestCommand("SubscribeToData,Skeleton,All" + name, 2000, 3);
+
+                if (!subscribeSucceeded && !m_doneSubscriptionNotice)
+                {
+                    Debug.LogError("Failed to subscribe to all skeletons streaming data some unknown reason.", component);
+                    m_doneSubscriptionNotice = true;
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Your version of Motive is too old to support NatNet skeleton data subscription; streaming bandwidth consumption may be higher than necessary. This feature works in Motive 2.2.1+.");
+                m_doneSubscriptionNotice = true;
+            }
+        }
+    }
+
+    private void SubscribeMarkers( )
+    {
+        if (m_client != null && ConnectionType == ClientConnectionType.Unicast)
+        {
+            // Try subscribing up to 3 times with a 2000 ms timeout before giving up. 
+            bool subscribeSucceeded = m_client.RequestCommand("SubscribeToData,MarkerSetMarkers,All", 2000, 3);
+            bool subscribeSucceeded2 = m_client.RequestCommand("SubscribeToData,LabeledMarkers,All", 2000, 3);
+            bool subscribeSucceeded3 = m_client.RequestCommand("SubscribeToData,LegacyUnlabeledMarkers,All", 2000, 3);
+            bool allSubscribeSucceeded = subscribeSucceeded && subscribeSucceeded2 && subscribeSucceeded3;
+
+            // Log a warning on the first failure.
+            if (!allSubscribeSucceeded && !m_doneSubscriptionNotice)
+            {
+                if (m_client.ServerDescription.HostApp == "Motive")
+                {
+                    // Host app is Motive: If new enough to support subscription, failure is an error.
+                    // Otherwise, warn them that they may want to update Motive to reduce bandwidth consumption.
+                    if (m_client.ServerAppVersion >= new Version(2, 2, 0))
+                    {
+                        Debug.LogError("Failed to subscribe to marker streaming data");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Your version of Motive is too old to support NatNet rigid body data subscription; streaming bandwidth consumption may be higher than necessary. This feature works in Motive 2.2.0+.");
+                    }
+                }
+                else
+                {
+                    // Not Motive, we don't know whether it "should" support this. Warning instead of error.
+                    Debug.LogWarning("Failed to subscribe to marker streaming data");
+                }
+
+                m_doneSubscriptionNotice = true;
+            }
         }
     }
 
@@ -735,7 +1216,8 @@ public class OptitrackStreamingClient : MonoBehaviour
         else
         {
             OptitrackSkeletonState newSkeletonState = new OptitrackSkeletonState {
-                BonePoses = new Dictionary<Int32, OptitrackPose>()
+                BonePoses = new Dictionary<Int32, OptitrackPose>(),
+                LocalBonePoses = new Dictionary<int, OptitrackPose>(),
             };
 
             m_latestSkeletonStates[skeletonId] = newSkeletonState;
@@ -778,7 +1260,7 @@ public class OptitrackStreamingClient : MonoBehaviour
     }
 
 
-    public void _EnterFrameDataUpdateLock()
+        public void _EnterFrameDataUpdateLock()
     {
         Monitor.Enter( m_frameDataUpdateLock );
     }

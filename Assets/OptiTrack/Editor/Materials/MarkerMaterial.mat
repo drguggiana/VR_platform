@@ -4,8 +4,9 @@
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_Name: MarkerMaterial
   m_Shader: {fileID: 4800000, guid: c01d408c325d26a4989fb7807c580b3f, type: 3}
   m_ShaderKeywords: _EMISSION
@@ -71,3 +72,4 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 0.5019608, b: 0, a: 0.2509804}
     - _EmissionColor: {r: 1, g: 0.5, b: 0, a: 1}
+  m_BuildTextureStacks: []
