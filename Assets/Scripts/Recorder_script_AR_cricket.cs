@@ -137,7 +137,7 @@ public class Recorder_script_AR_cricket : MonoBehaviour
         // create the color for the square
         new_color = new Color(color_factor, color_factor, color_factor, 1f);
         // put it on the square 
-        tracking_square.GetComponent<Renderer>().material.SetColor("_Color", new_color);
+        tracking_square.GetComponent<Renderer>().sharedMaterial.SetColor("_Color", new_color);
         // Define the color for the next iteration (switch it)
         if (color_factor > 0.0f)
         {
