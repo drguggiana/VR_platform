@@ -1,19 +1,6 @@
-/* 
-Copyright © 2016 NaturalPoint Inc.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License. 
-*/
-
+ï»¿//======================================================================================================
+// Copyright 2016, NaturalPoint Inc.
+//======================================================================================================
 
 using System;
 using System.Collections.Generic;
@@ -53,198 +40,6 @@ namespace NaturalPoint.NatNetLib
     }
 
 
-    internal static class NatNetLogging
-    {
-        public static event EventHandler<NatNetLogEventArgs> OnLogMessage;
-
-        public class NatNetLogEventArgs : EventArgs
-        {
-            public NatNetVerbosity Verbosity { get; set; }
-            public String Message { get; set; }
-        }
-
-        private static NatNetLogCallback m_nativeLogHandler;
-        private static NatNetLogEventArgs m_nativeLogEventArgs = new NatNetLogEventArgs();
-
-        static NatNetLogging()
-        {
-            // This ensures the reverse P/Invoke delegate passed to the native code stays alive.
-            m_nativeLogHandler = LogCallbackNativeThunk;
-
-            NatNetLib.NativeMethods.NatNet_SetLogCallback( m_nativeLogHandler );
-        }
-
-        /// <summary>
-        /// Reverse P/Invoke delegate type for <see cref="NativeMethods.NatNet_SetLogCallback"/>.
-        /// </summary>
-        /// <param name="level">Log message severity.</param>
-        /// <param name="pMessage">Null-terminated char* containing message text.</param>
-        private static void LogCallbackNativeThunk( NatNetVerbosity level, IntPtr pMessage )
-        {
-            try
-            {
-                if ( OnLogMessage != null )
-                {
-                    m_nativeLogEventArgs.Verbosity = level;
-                    m_nativeLogEventArgs.Message = Marshal.PtrToStringAnsi( pMessage );
-                    OnLogMessage( null, m_nativeLogEventArgs );
-                }
-            }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch ( Exception ex )
-#pragma warning restore CA1031 // Do not catch general exception types
-            {
-                // It's important that we consume any exceptions here, since an exception thrown
-                // from this reverse P/Invoke delegate would transform into an SEH exception once
-                // propagated across the native code boundary, and NatNetLib would blow up.
-                System.Diagnostics.Debug.WriteLine( "ERROR - Exception occurred in LogCallbackNativeThunk: " + ex.ToString() );
-            }
-        }
-    }
-
-
-    internal class NatNetServerDiscovery : IDisposable
-    {
-        public List<sNatNetDiscoveredServer> DiscoveredServers
-        {
-            get
-            {
-                lock ( m_discoveredServers )
-                {
-                    return new List<sNatNetDiscoveredServer>( m_discoveredServers );
-                }
-            }
-        }
-        public event EventHandler<NatNetServerDiscoveredEventArgs> OnServerDiscovered;
-
-        public class NatNetServerDiscoveredEventArgs : EventArgs
-        {
-            public sNatNetDiscoveredServer DiscoveredServer { get; set; }
-        }
-
-        #region Private fields
-        private bool m_disposed = false;
-        private IntPtr m_discoveryHandle = IntPtr.Zero;
-        private NatNetServerDiscoveryCallback m_nativeCallbackHandler;
-        private NatNetServerDiscoveredEventArgs m_serverDiscoveredEventArgs = new NatNetServerDiscoveredEventArgs();
-        private List<sNatNetDiscoveredServer> m_discoveredServers = new List<sNatNetDiscoveredServer>();
-        #endregion Private fields
-
-
-        public NatNetServerDiscovery( IEnumerable<string> knownServerAddresses = null )
-        {
-            m_nativeCallbackHandler = ServerDiscoveredNativeThunk;
-
-            if ( knownServerAddresses == null )
-            {
-                NatNetError result = NatNetLib.NativeMethods.NatNet_CreateAsyncServerDiscovery( out m_discoveryHandle, m_nativeCallbackHandler );
-                NatNetException.ThrowIfNotOK( result, "NatNet_CreateAsyncServerDiscovery failed." );
-                if ( m_discoveryHandle == IntPtr.Zero )
-                {
-                    throw new NatNetException( "NatNet_CreateAsyncServerDiscovery returned null handle." );
-                }
-            }
-            else
-            {
-                NatNetError result = NatNetLib.NativeMethods.NatNet_CreateAsyncServerDiscovery( out m_discoveryHandle, m_nativeCallbackHandler, IntPtr.Zero, false );
-                NatNetException.ThrowIfNotOK( result, "NatNet_CreateAsyncServerDiscovery failed." );
-
-                foreach ( string serverAddress in knownServerAddresses )
-                {
-                    result = NatNetLib.NativeMethods.NatNet_AddDirectServerToAsyncDiscovery( m_discoveryHandle, serverAddress );
-                    NatNetException.ThrowIfNotOK( result, "NatNet_AddDirectServerToAsyncDiscovery failed." );
-                }
-
-                result = NatNetLib.NativeMethods.NatNet_StartAsyncDiscovery( m_discoveryHandle );
-                NatNetException.ThrowIfNotOK( result, "NatNet_StartAsyncDiscovery failed." );
-            }
-        }
-
-
-        void ServerDiscoveredNativeThunk( sNatNetDiscoveredServer discoveredServer, IntPtr pUserContext )
-        {
-            try
-            {
-                ThrowIfDisposed();
-
-                lock ( m_discoveredServers )
-                {
-                    m_discoveredServers.Add( discoveredServer );
-                }
-
-                if ( OnServerDiscovered != null )
-                {
-                    m_serverDiscoveredEventArgs.DiscoveredServer = discoveredServer;
-                    OnServerDiscovered( this, m_serverDiscoveredEventArgs );
-                }
-            }
-#pragma warning disable CA1031 // Do not catch general exception types
-            catch ( Exception ex )
-#pragma warning restore CA1031 // Do not catch general exception types
-            {
-                // It's important that we consume any exceptions here, since an exception thrown
-                // from this reverse P/Invoke delegate would transform into an SEH exception once
-                // propagated across the native code boundary, and NatNetLib would blow up.
-                System.Diagnostics.Debug.WriteLine( "ERROR - Exception occurred in ServerDiscoveredNativeThunk: " + ex.ToString() );
-            }
-        }
-
-
-        #region Dispose pattern
-        ~NatNetServerDiscovery()
-        {
-            Dispose( false );
-        }
-
-
-        /// <summary>Implements IDisposable.</summary>
-        public void Dispose()
-        {
-            Dispose( true );
-            GC.SuppressFinalize( this );
-        }
-
-
-        /// <summary>
-        /// Called by both the <see cref="IDisposable.Dispose()"/> override,
-        /// as well as the finalizer, to do the actual cleanup work.
-        /// </summary>
-        /// <param name="disposing">
-        /// True if <see cref="Dispose()"/> was called explicitly. False if
-        /// running as part of the finalizer. If false, do not attempt to
-        /// reference other managed objects, since they may have already been
-        /// finalized themselves.
-        /// </param>
-        protected virtual void Dispose( bool disposing )
-        {
-            if ( m_disposed )
-                return;
-
-            // Now destroy the native discovery handle.
-            NatNetError destroyResult = NatNetLib.NativeMethods.NatNet_FreeAsyncServerDiscovery( m_discoveryHandle );
-
-            if ( destroyResult != NatNetError.NatNetError_OK )
-            {
-                System.Diagnostics.Debug.WriteLine( "NatNet_FreeAsyncServerDiscovery returned " + destroyResult.ToString() + "." );
-            }
-
-            m_discoveryHandle = IntPtr.Zero;
-
-            m_disposed = true;
-        }
-
-
-        private void ThrowIfDisposed()
-        {
-            if ( m_disposed )
-            {
-                throw new ObjectDisposedException( GetType().FullName );
-            }
-        }
-        #endregion Dispose pattern
-    }
-
-
     internal class NatNetClient : IDisposable
     {
         public class DataDescriptions
@@ -267,9 +62,6 @@ namespace NaturalPoint.NatNetLib
         }
 
         public bool Connected { get; private set; }
-
-        public sServerDescription ServerDescription { get { return m_serverDesc; } }
-        public Version ServerAppVersion { get; private set; }
 
         /// <summary>
         /// This event is raised when a new frame is received via the network.
@@ -316,9 +108,8 @@ namespace NaturalPoint.NatNetLib
 
 
         #region Private fields
-        private bool m_disposed = false;
         private IntPtr m_clientHandle = IntPtr.Zero;
-        private sServerDescription m_serverDesc;
+        private bool m_disposed = false;
         private NatNetFrameReceivedCallback m_nativeFrameReceivedHandler;
         private NativeFrameReceivedEventArgs m_nativeFrameReceivedEventArgs = new NativeFrameReceivedEventArgs();
         #endregion Private fields
@@ -360,19 +151,8 @@ namespace NaturalPoint.NatNetLib
                 MulticastAddress = multicastAddress == null ? null : multicastAddress.ToString()
             };
 
-            NatNetError result;
-
-            result = NatNetLib.NativeMethods.NatNet_Client_Connect( m_clientHandle, ref initParams );
-            NatNetException.ThrowIfNotOK( result, "NatNet_Client_Connect failed." );
-
-            result = NatNetLib.NativeMethods.NatNet_Client_GetServerDescription( m_clientHandle, out m_serverDesc );
-            NatNetException.ThrowIfNotOK( result, "NatNet_Client_GetServerDescription failed." );
-
-            ServerAppVersion = new Version(
-                m_serverDesc.HostAppVersion[0],
-                m_serverDesc.HostAppVersion[1],
-                m_serverDesc.HostAppVersion[2],
-                m_serverDesc.HostAppVersion[3] );
+            NatNetError retval = NatNetLib.NativeMethods.NatNet_Client_Connect( m_clientHandle, ref initParams );
+            NatNetException.ThrowIfNotOK( retval, "NatNet_Client_Connect failed." );
 
             Connected = true;
         }
@@ -391,74 +171,13 @@ namespace NaturalPoint.NatNetLib
             }
         }
 
-        public NatNetError Request( string request, out IntPtr pResponse, out Int32 pResponseLenBytes, Int32 timeoutMs = 1000, Int32 numAttempts = 1 )
-        {
-            ThrowIfDisposed();
 
-            NatNetError retval = NatNetLib.NativeMethods.NatNet_Client_Request( m_clientHandle, request, out pResponse, out pResponseLenBytes, timeoutMs, numAttempts );
-            NatNetException.ThrowIfNotOK( retval, "NatNet_Client_Request failed." );
-
-            return retval;
-        }
-
-
-        public float RequestFloat( string request, Int32 timeoutMs = 1000, Int32 numAttempts = 1 )
-        {
-            ThrowIfDisposed();
-
-            IntPtr responsePtr;
-            Int32 responseLen;
-            NatNetError result = NatNetLib.NativeMethods.NatNet_Client_Request( m_clientHandle, request, out responsePtr, out responseLen, timeoutMs, numAttempts );
-            NatNetException.ThrowIfNotOK( result, "NatNet_Client_Request failed.");
-
-            if ( responseLen != Marshal.SizeOf( typeof(float) ) )
-            {
-                throw new NatNetException( "Response has incorrect length" );
-            }
-
-            float[] responseArray = { float.NaN };
-            Marshal.Copy( responsePtr, responseArray, 0, 1 );
-            return responseArray[0];
-        }
-
-
-        public Int32 RequestInt32( string request, Int32 timeoutMs = 1000, Int32 numAttempts = 1 )
-        {
-            ThrowIfDisposed();
-
-            IntPtr responsePtr;
-            Int32 responseLen;
-            NatNetError result = NatNetLib.NativeMethods.NatNet_Client_Request( m_clientHandle, request, out responsePtr, out responseLen, timeoutMs, numAttempts );
-            NatNetException.ThrowIfNotOK( result, "NatNet_Client_Request failed." );
-
-            if ( responseLen != Marshal.SizeOf( typeof(Int32) ) )
-            {
-                throw new NatNetException( "Response has incorrect length" );
-            }
-
-            Int32[] responseArray = { Int32.MinValue };
-            Marshal.Copy( responsePtr, responseArray, 0, 1 );
-            return responseArray[0];
-        }
-
-
-        public bool RequestCommand( string request, Int32 timeoutMs = 1000, Int32 numAttempts = 1 )
-        {
-            ThrowIfDisposed();
-
-            IntPtr responsePtr;
-            Int32 responseLen;
-            NatNetError result = NatNetLib.NativeMethods.NatNet_Client_Request(m_clientHandle, request, out responsePtr, out responseLen, timeoutMs, numAttempts);
-            return result == NatNetError.NatNetError_OK;
-        }
-
-
-        public DataDescriptions GetDataDescriptions( UInt32 descriptionTypesMask = 0xFFFFFFFF )
+        public DataDescriptions GetDataDescriptions()
         {
             ThrowIfDisposed();
 
             IntPtr pDataDescriptions;
-            NatNetError retval = NatNetLib.NativeMethods.NatNet_Client_GetDataDescriptionList( m_clientHandle, out pDataDescriptions, descriptionTypesMask );
+            NatNetError retval = NatNetLib.NativeMethods.NatNet_Client_GetDataDescriptionList( m_clientHandle, out pDataDescriptions );
             NatNetException.ThrowIfNotOK( retval, "NatNet_Client_GetDataDescriptions failed." );
 
             sDataDescriptions dataDescriptions = (sDataDescriptions)Marshal.PtrToStructure( pDataDescriptions, typeof( sDataDescriptions ) );
@@ -528,12 +247,6 @@ namespace NaturalPoint.NatNetLib
         }
 
 
-        public NatNetError GetPredictedRigidBodyPose( Int32 rbId, out sRigidBodyData rbData, double dt )
-        {
-            return NatNetLib.NativeMethods.NatNet_Client_GetPredictedRigidBodyPose( m_clientHandle, rbId, out rbData, dt );
-        }
-
-
         /// <summary>
         /// Reverse P/Invoke delegate passed to <see cref="NativeMethods.NatNet_Client_SetFrameReceivedCallback"/>.
         /// </summary>
@@ -551,9 +264,7 @@ namespace NaturalPoint.NatNetLib
                     NativeFrameReceived( this, m_nativeFrameReceivedEventArgs );
                 }
             }
-#pragma warning disable CA1031 // Do not catch general exception types
             catch ( Exception ex )
-#pragma warning restore CA1031 // Do not catch general exception types
             {
                 // It's important that we consume any exceptions here, since an exception thrown
                 // from this reverse P/Invoke delegate would transform into an SEH exception once
