@@ -12,6 +12,7 @@ TagManager:
   - Screen
   - StartWall
   - StartFloor
+  - CalibrationSphere
   layers:
   - Default
   - TransparentFX
