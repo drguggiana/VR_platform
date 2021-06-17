@@ -11,7 +11,7 @@ Assets/Scripts/Paths.cs.meta
 
 etc
 packages.config
-.idea
+.idea/
 .vsconfig
 
 # This .gitignore file should be placed at the root of your Unity project directory
@@ -25,6 +25,7 @@ packages.config
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
+/[Pp]roject[Ss]ettings/
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
