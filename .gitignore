@@ -11,6 +11,7 @@ Assets/Scripts/Paths.cs.meta
 
 etc
 .idea/
+.vscode/
 
 # This .gitignore file should be placed at the root of your Unity project directory
 #
