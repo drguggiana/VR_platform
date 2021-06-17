@@ -3,6 +3,7 @@
 //======================================================================================================
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -180,9 +181,23 @@ public class OptitrackHmd : MonoBehaviour
 
     bool DevicePresent()
     {
-#if UNITY_2017_2_OR_NEWER
-        return UnityEngine.XR.XRSettings.enabled && UnityEngine.XR.XRDevice.isPresent;
+#if UNITY_2020_3_OR_NEWER
+        // As of Unity 2020, this is the way one checks if an XR device is present
+        // See https://docs.unity3d.com/2020.1/Documentation/ScriptReference/XR.XRDevice-isPresent.html
+        var xrDisplaySubsystems = new List<UnityEngine.XR.XRDisplaySubsystem>();
+        SubsystemManager.GetInstances<UnityEngine.XR.XRDisplaySubsystem>(xrDisplaySubsystems);
+        foreach (var xrDisplay in xrDisplaySubsystems)
+        {
+            if (UnityEngine.XR.XRSettings.enabled && xrDisplay.running)
+            {
+                return true;
+            }
+        }
+        return false;
 #else
+    #if UNITY_2017_2_OR_NEWER
+        return UnityEngine.XR.XRSettings.enabled && UnityEngine.XR.XRDevice.isPresent;
+    #endif
         return UnityEngine.VR.VRSettings.enabled && UnityEngine.VR.VRDevice.isPresent;
 #endif
     }
@@ -197,7 +212,8 @@ public class OptitrackHmd : MonoBehaviour
 
 #if UNITY_2017_2_OR_NEWER
         string deviceFamily = UnityEngine.XR.XRSettings.loadedDeviceName;
-        string deviceModel = UnityEngine.XR.XRDevice.model;
+        // The following line goes unused, regardless of the Unity version
+        //string deviceModel = UnityEngine.XR.XRDevice.model;
 #else
         string deviceFamily = UnityEngine.VR.VRSettings.loadedDeviceName;
         string deviceModel = UnityEngine.VR.VRDevice.model;
