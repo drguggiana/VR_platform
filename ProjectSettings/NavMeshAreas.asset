@@ -85,6 +85,8 @@ NavMeshProjectSettings:
     manualTileSize: 0
     tileSize: 256
     accuratePlacement: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
   - serializedVersion: 2
@@ -92,7 +94,7 @@ NavMeshProjectSettings:
     agentRadius: 0.05
     agentHeight: 0.005
     agentSlope: 13
-    agentClimb: 0.005
+    agentClimb: 0.001
     ledgeDropHeight: 0
     maxJumpAcrossDistance: 0
     minRegionArea: 2
@@ -101,6 +103,8 @@ NavMeshProjectSettings:
     manualTileSize: 0
     tileSize: 256
     accuratePlacement: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
   - serializedVersion: 2
@@ -117,6 +121,8 @@ NavMeshProjectSettings:
     manualTileSize: 0
     tileSize: 256
     accuratePlacement: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
   m_SettingNames:
