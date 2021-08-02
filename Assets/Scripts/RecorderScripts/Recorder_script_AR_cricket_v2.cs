@@ -6,7 +6,7 @@ using System.Linq;
 using System;
 
 [ExecuteInEditMode]
-public class Recorder_script_AR_cricket : MonoBehaviour
+public class Recorder_script_AR_cricket_v2 : MonoBehaviour
 {
 
     // Streaming client
@@ -26,8 +26,10 @@ public class Recorder_script_AR_cricket : MonoBehaviour
     private Vector3 Mouse_Orientation;
 
     // Variables for cricket position
-    public GameObject Cricket;
-    private Vector3 Cricket_Position;
+    public GameObject RealCricketPrefab;
+    private List<GameObject> cricketObjs = new List<GameObject>();
+    private List<Vector3> cricketPositions = new List<Vector3>();
+    private int numRealCrickets = 0;
 
     // Rigid body ID for mouse tracking
     public Int32 RigidBodyId;
@@ -35,12 +37,7 @@ public class Recorder_script_AR_cricket : MonoBehaviour
     // Timer
     private OptitrackHiResTimer.Timestamp reference;
     private float Time_stamp;
-
-    // Variables for target object transforms and states
-    //public GameObject TargetObj;
-    //public TargetController targetController;
-    //private Vector3 Target_Position;
-
+    
     // Booleans for trial state
     private bool trialDone = true;
     private bool inTrial = false;
@@ -58,7 +55,7 @@ public class Recorder_script_AR_cricket : MonoBehaviour
     // Writer for saving data
     private StreamWriter writer;
     private string mouse_string;
-    private string real_cricket_string;
+    private string real_cricket_string = "";
     private string target_string;
 
     // For debugging
@@ -76,6 +73,9 @@ public class Recorder_script_AR_cricket : MonoBehaviour
         // Force full screen on projector
         Screen.fullScreen = true;
 
+        // Instantiate Real Cricket prefabs
+        InstantiateCricketPrefabs();
+        
         // Get the reference timer
         reference = OptitrackHiResTimer.Now();
 
@@ -179,12 +179,22 @@ public class Recorder_script_AR_cricket : MonoBehaviour
 
         // Process the real cricket position
         List<OptitrackMarkerState> markerStates = StreamingClient.GetLatestMarkerStates();
-        Cricket_Position = GetCricketPosition(markerStates);
-        Cricket.transform.localPosition = Cricket_Position;
+        GetCricketPosition(markerStates, cricketObjs);
 
-        object[] real_cricket_data = { Cricket_Position.x, Cricket_Position.y, Cricket_Position.z };
-        real_cricket_string = string.Join(", ", real_cricket_data);
-
+        foreach (Vector3 cricketPos in cricketPositions)
+        {
+            object[] real_cricket_data = { cricketPos.x, cricketPos.y, cricketPos.z };
+            string this_cricket = string.Join(", ", real_cricket_data);
+            
+            List<string> strArray = new List<string> { real_cricket_string, this_cricket };
+            
+            // Remove leading comma
+            real_cricket_string = string.Join(", ", strArray.Where(s => !string.IsNullOrEmpty(s)));
+            
+        }
+        
+        
+        
         //// Process the target object position - this only tracks position
         //// TODO: Make this handle animation states if present for 3D tracking
         //if (trial_num > 0)
@@ -204,54 +214,107 @@ public class Recorder_script_AR_cricket : MonoBehaviour
 
         // Write the mouse and VR cricket info
         //object[] all_data = { Time_stamp, trial_num, mouse_string, real_cricket_string, target_string, color_factor };
-        object[] all_data = { Time_stamp, trial_num, mouse_string, real_cricket_string, color_factor };
+        object[] all_data = { Time_stamp, mouse_string, real_cricket_string, color_factor };
         writer.WriteLine(string.Join(", ", all_data));
+
+        real_cricket_string = "";
 
     }
 
 
     // --- Functions for tracking objects in the scene --- //
-    Vector3 GetCricketPosition(List<OptitrackMarkerState> markers)
+    void InstantiateCricketPrefabs()
     {
-        Vector3 outputPosition;
-        List<Vector3> nonlabelledMarkers = new List<Vector3>();
+        List<OptitrackMarkerState> markerStates = StreamingClient.GetLatestMarkerStates();
+        
+        foreach (OptitrackMarkerState marker in markerStates)
+        {
+            // Only get markers that are not labeled as part of a RigidBody
+            if (marker.Labeled == false)
+            {
+                numRealCrickets++;
+
+                GameObject newRealCricket = Instantiate(RealCricketPrefab, new Vector3(0, 0, 0), Quaternion.identity);
+                newRealCricket.transform.parent = StreamingClient.transform;
+                
+                // Set parameters of the new prefab
+                newRealCricket.transform.localPosition = marker.Position;
+                newRealCricket.GetComponent<CricketMetadata>().ID = marker.Id;
+                
+                // Note here that lists in C# are ordered, so the position in cricketPositions always matches the 
+                // corresponding cricket object in cricketObjs
+                cricketObjs.Add(newRealCricket);
+                cricketPositions.Add(newRealCricket.transform.localPosition);
+            }
+        }
+
+    }
+    
+    
+    void GetCricketPosition(List<OptitrackMarkerState> markers, List<GameObject> realCrickets)
+    {
+        List<OptitrackMarkerState> nonlabelledMarkers = new List<OptitrackMarkerState>();
 
         foreach (OptitrackMarkerState marker in markers)
         {
             // Only get markers that are not labeled as part of a RigidBody
             if (marker.Labeled == false)
             {
-                nonlabelledMarkers.Add(marker.Position);
-                //Debug.Log (marker.Position);
+                nonlabelledMarkers.Add(marker);
+
             }
         }
 
-        // Check how many unlabeled markers there are. If there is more than one, find the one closest to the previous
-        // position and use that as the cricket position. If there are none, use the last cricket position.
-        if (nonlabelledMarkers.Count == 1)
+        if (nonlabelledMarkers.Count == 0)
         {
-            // If there's just a single unlabeled marker, this is our cricket
-            outputPosition = nonlabelledMarkers[0];
-        }
-        else if (nonlabelledMarkers.Count > 1)
-        {
-            // If there is more than one point detected, use the one that's closest to the previous position
-            float[] distances = new float[nonlabelledMarkers.Count];
-
-            for (int i = 0; i < nonlabelledMarkers.Count; i++)
-            {
-                distances[i] = Math.Abs(Vector3.Distance(nonlabelledMarkers[i], Cricket_Position));
-            }
-
-            int minIndex = Array.IndexOf(distances, distances.Min());
-            outputPosition = nonlabelledMarkers[minIndex];
+            // If we don't pick up any single points, then just re-use the last cricket positions.
+            // Nothing happens here
         }
         else
         {
-            // If there is no point found, reuse the current position
-            outputPosition = Cricket.transform.localPosition;
+            for (int i = 0; i < numRealCrickets; i++)
+            {
+                GameObject rc = realCrickets[i];
+                
+                foreach (OptitrackMarkerState marker in nonlabelledMarkers)
+                {
+                    if (marker.Id == rc.GetComponent<CricketMetadata>().ID)
+                    {
+                        rc.transform.localPosition = marker.Position;
+                        cricketPositions[i] = marker.Position;
+                    }
+                }
+            }
         }
-        return outputPosition;
+       
+        
+        //
+        // // Check how many unlabeled markers there are. If there is more than one, find the one closest to the previous
+        // // position and use that as the cricket position. If there are none, use the last cricket position.
+        // if (nonlabelledMarkers.Count == 1)
+        // {
+        //     // If there's just a single unlabeled marker, this is our cricket
+        //     outputPositions.Add(nonlabelledMarkers[0].Position);
+        // }
+        // else if (nonlabelledMarkers.Count > 1)
+        // {
+        //     // If there is more than one point detected, use the one that's closest to the previous position
+        //     float[] distances = new float[nonlabelledMarkers.Count];
+        //
+        //     for (int i = 0; i < nonlabelledMarkers.Count; i++)
+        //     {
+        //         distances[i] = Math.Abs(Vector3.Distance(nonlabelledMarkers[i], Cricket_Position));
+        //     }
+        //
+        //     int minIndex = Array.IndexOf(distances, distances.Min());
+        //     outputPosition = nonlabelledMarkers[minIndex];
+        // }
+        // else
+        // {
+        //     // If there is no point found, reuse the current position
+        //     outputPositions.Add(Cricket.transform.localPosition);
+        // }
+        // return outputPositions;
     }
 
     // --- Functions for writing header of data file --- //
@@ -289,11 +352,26 @@ public class Recorder_script_AR_cricket : MonoBehaviour
 
     void AssembleHeader()
     {
-        string[] header = {"time_m",
-                           "mouse_x_m", "mouse_y_m", "mouse_z_m",
-                           "mouse_xrot_m", "mouse_yrot_m", "mouse_zrot_m",
-                           "cricket_x_m", "cricket_y_m", "cricket_z_m",    
-                           "color_factor"};
+        string[] mouse_template = {"mouse_x_m", "mouse_y_m", "mouse_z_m",
+                                   "mouse_xrot_m", "mouse_yrot_m", "mouse_zrot_m"};
+
+        string[] cricket_template = {"_x_m", "_y_m", "_z_m"};
+        List<string> cricket_cols = new List<string>();
+
+        // Assemble the cricket string depending on how many real crickets there are
+        for (int i=0; i < numRealCrickets; i++)
+        {
+            string real_cricket = "cricket_" + i;
+            foreach (string ct in cricket_template)
+            {
+                cricket_cols.Add(real_cricket + ct);
+            }
+        }
+        
+        string mouse_string = string.Join(", ", mouse_template);
+        string cricket_string = string.Join(", ", cricket_cols);
+
+        object[] header = {"time_m", mouse_string, cricket_string, "color_factor"};
         writer.WriteLine(string.Join(", ", header));
     }
 
