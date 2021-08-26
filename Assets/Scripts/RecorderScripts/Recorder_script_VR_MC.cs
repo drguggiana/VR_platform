@@ -72,7 +72,7 @@ public class Recorder_script_VR_MC : MonoBehaviour
         writer = new StreamWriter(Paths.recording_path, true);
 
         // Get cricket object array sorted by name/number
-        CricketObjs = HelperFunctions.FindObsWithTag("Cricket");
+        CricketObjs = HelperFunctions.FindObsWithTag("vrCricket");
 
         // Write initial parameters and header to file
         LogSceneParams();

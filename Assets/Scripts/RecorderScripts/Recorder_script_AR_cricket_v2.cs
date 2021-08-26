@@ -74,7 +74,7 @@ public class Recorder_script_AR_cricket_v2 : MonoBehaviour
         Screen.fullScreen = true;
 
         // Instantiate Real Cricket prefabs
-        InstantiateCricketPrefabs();
+        InstantiateRealCricketPrefabs();
         
         // Get the reference timer
         reference = OptitrackHiResTimer.Now();
@@ -179,7 +179,7 @@ public class Recorder_script_AR_cricket_v2 : MonoBehaviour
 
         // Process the real cricket position
         List<OptitrackMarkerState> markerStates = StreamingClient.GetLatestMarkerStates();
-        GetCricketPosition(markerStates, cricketObjs);
+        GetRealCricketPosition(markerStates, cricketObjs);
 
         foreach (Vector3 cricketPos in cricketPositions)
         {
@@ -223,7 +223,7 @@ public class Recorder_script_AR_cricket_v2 : MonoBehaviour
 
 
     // --- Functions for tracking objects in the scene --- //
-    void InstantiateCricketPrefabs()
+    void InstantiateRealCricketPrefabs()
     {
         List<OptitrackMarkerState> markerStates = StreamingClient.GetLatestMarkerStates();
         
@@ -251,7 +251,7 @@ public class Recorder_script_AR_cricket_v2 : MonoBehaviour
     }
     
     
-    void GetCricketPosition(List<OptitrackMarkerState> markers, List<GameObject> realCrickets)
+    void GetRealCricketPosition(List<OptitrackMarkerState> markers, List<GameObject> realCrickets)
     {
         List<OptitrackMarkerState> nonlabelledMarkers = new List<OptitrackMarkerState>();
 

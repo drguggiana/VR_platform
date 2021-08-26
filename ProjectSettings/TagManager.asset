@@ -13,6 +13,7 @@ TagManager:
   - StartWall
   - StartFloor
   - CalibrationSphere
+  - vrCricket
   layers:
   - Default
   - TransparentFX
