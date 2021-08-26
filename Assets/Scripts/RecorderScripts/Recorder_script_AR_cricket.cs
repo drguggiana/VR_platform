@@ -327,6 +327,8 @@ public class Recorder_script_AR_cricket : MonoBehaviour
 
     string GetVRCricketData()
     {
+        vrCricketString = "";
+        
         foreach (GameObject vrCricketObj in vrCricketObjs)
         {
             // Get the VR cricket position and orientation
@@ -426,7 +428,15 @@ public class Recorder_script_AR_cricket : MonoBehaviour
     }
 
 
-    //// --- Handle OSC Communication --- //
+    // --- Handle OSC Communication --- //
+    void OnReceiveStop(OscMessage message)
+    {
+        // Close the writer
+        writer.Close();
+        // Kill the application
+        Application.Quit();
+    }
+    
     //void OnReceiveTrialStart(OscMessage message)
     //{
     //    // Parse the values for trial setup
@@ -473,13 +483,5 @@ public class Recorder_script_AR_cricket : MonoBehaviour
     //     message.values.Add(trial_num);
     //     osc.Send(message);
     // }
-
-    void OnReceiveStop(OscMessage message)
-    {
-        // Close the writer
-        writer.Close();
-        // Kill the application
-        Application.Quit();
-    }
 
 }
