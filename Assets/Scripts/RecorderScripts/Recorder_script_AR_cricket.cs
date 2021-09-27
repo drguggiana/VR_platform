@@ -11,55 +11,64 @@ public class Recorder_script_AR_cricket : MonoBehaviour
 
     // Streaming client
     public OptitrackStreamingClient StreamingClient;
-
+    public Int32 RigidBodyId;
+    
     // OSC communication client
     public OSC osc;
 
     // Variables for tracking square
-    public GameObject tracking_square;
+    public GameObject trackingSquare;
     private float color_factor = 0.0f;
     private Color new_color;
 
     // Variables for mouse position
-    public GameObject MouseObj;
-    private Vector3 Mouse_Position;
-    private Vector3 Mouse_Orientation;
+    public GameObject Mouse;
+    private Vector3 mousePosition;
+    private Vector3 mouseOrientation;
 
-    // Variables for cricket position
-    public GameObject Cricket;
-    private Vector3 Cricket_Position;
-
-    // Rigid body ID for mouse tracking
-    public Int32 RigidBodyId;
-
-    // Timer
-    private OptitrackHiResTimer.Timestamp reference;
-    private float Time_stamp;
+    // Variables for real cricket position
+    public GameObject realCricket;
+    private Vector3 realCricketPosition;
+    
+    // Variables for virtual cricket transforms and states
+    private GameObject[] vrCricketObjs;
+    GameObject vrCricketInstanceGameObject;
+    private Vector3 vrCricketPosition;
+    private Vector3 vrCricketOrientation;
+    private int state;
+    private float speed;
+    private int encounter;
+    private int motion;
 
     // Variables for target object transforms and states
     //public GameObject TargetObj;
     //public TargetController targetController;
     //private Vector3 Target_Position;
-
+    
+    // Timer
+    private OptitrackHiResTimer.Timestamp reference;
+    private float timeStamp;
+    
     // Booleans for trial state
-    private bool trialDone = true;
-    private bool inTrial = false;
+    // private bool trialDone = true;
+    // private bool inTrial = false;
 
     // Variables for properties of the target that are manipulated
-    private int trial_num = 0;
-    private int shape;
-    private Vector3 scale;
-    private Vector4 screen_color;
-    private Vector4 target_color;
-    private float speed;
-    private float acceleration;
-    private int trajectory;
+    // private int trial_num = 0;
+    // private int shape;
+    // private Vector3 scale;
+    // private Vector4 screen_color;
+    // private Vector4 target_color;
+    // private float speed;
+    // private float acceleration;
+    // private int trajectory;
 
     // Writer for saving data
     private StreamWriter writer;
-    private string mouse_string;
-    private string real_cricket_string;
-    private string target_string;
+    private string mouseString;
+    private string realCricketString;
+    private string vrCricketString;
+    private string targetString;
 
     // For debugging
     private int counter = 0;
@@ -69,12 +78,12 @@ public class Recorder_script_AR_cricket : MonoBehaviour
     void Start()
     {
 
+        // Force full screen on projector
+        Screen.fullScreen = true;
+        
         // set the OSC communication
         //osc.SetAddressHandler("/TrialStart", OnReceiveTrialStart);
         osc.SetAddressHandler("/Close", OnReceiveStop);
-
-        // Force full screen on projector
-        Screen.fullScreen = true;
 
         // Get the reference timer
         reference = OptitrackHiResTimer.Now();
@@ -87,6 +96,9 @@ public class Recorder_script_AR_cricket : MonoBehaviour
         Paths.CheckFileExistence(Paths.recording_path);
         writer = new StreamWriter(Paths.recording_path, true);
 
+        // Get cricket object array sorted by name/number
+        vrCricketObjs = HelperFunctions.FindObsWithTag("vrCricket");
+        
         // Write initial parameters and header to file
         LogSceneParams();
         AssembleHeader();
@@ -137,7 +149,7 @@ public class Recorder_script_AR_cricket : MonoBehaviour
         // create the color for the square
         new_color = new Color(color_factor, color_factor, color_factor, 1f);
         // put it on the square 
-        tracking_square.GetComponent<Renderer>().sharedMaterial.SetColor("_Color", new_color);
+        trackingSquare.GetComponent<Renderer>().sharedMaterial.SetColor("_Color", new_color);
         // Define the color for the next iteration (switch it)
         if (color_factor > 0.0f)
         {
@@ -149,41 +161,77 @@ public class Recorder_script_AR_cricket : MonoBehaviour
         }
 
 
-        // --- Handle mouse, cricket, and target data --- //
+        // --- Handle mouse,  real cricket, and/or VR Cricket data --- //
 
-        // Process the mouse position as the other scripts
-        OptitrackRigidBodyState rbState = StreamingClient.GetLatestRigidBodyState(RigidBodyId);
-        if (rbState != null)
-        {
-            // get the position of the mouse RB
-            Mouse_Position = rbState.Pose.Position;
-            // change the transform position of the game object
-            this.transform.localPosition = Mouse_Position;
-            // also change its rotation
-            this.transform.localRotation = rbState.Pose.Orientation;
-            // turn the angles into Euler (for later printing)
-            Mouse_Orientation = this.transform.eulerAngles;
-            // get the timestamp 
-            Time_stamp = rbState.DeliveryTimestamp.SecondsSince(reference);
-        }
-        else
-        {
-            Mouse_Position = MouseObj.transform.position;
-            Mouse_Orientation = MouseObj.transform.rotation.eulerAngles;
-        }
+        GetMousePosition();
+        object[] mouseData = { mousePosition.x, mousePosition.y, mousePosition.z, 
+                               mouseOrientation.x, mouseOrientation.y, mouseOrientation.z };
+        mouseString = string.Join(", ", mouseData);
+        
+        realCricketPosition = GetRealCricketPosition();
+        realCricket.transform.localPosition = realCricketPosition;
+        object[] realCricketData = { realCricketPosition.x, realCricketPosition.y, realCricketPosition.z };
+        realCricketString = string.Join(", ", realCricketData);
+        
+        vrCricketString = GetVRCricketData();
+        
+        //-- Process the mouse position as the other scripts
+        // OptitrackRigidBodyState rbState = StreamingClient.GetLatestRigidBodyState(RigidBodyId);
+        // if (rbState != null)
+        // {
+        //     // get the position of the mouse Rigid Body
+        //     mousePosition = rbState.Pose.Position;
+        //     // change the transform position of the game object
+        //     this.transform.localPosition = mousePosition;
+        //     // also change its rotation
+        //     this.transform.localRotation = rbState.Pose.Orientation;
+        //     // turn the angles into Euler (for later printing)
+        //     mouseOrientation = this.transform.eulerAngles;
+        //     // get the timestamp 
+        //     timeStamp = rbState.DeliveryTimestamp.SecondsSince(reference);
+        // }
+        // else
+        // {
+        //     mousePosition = Mouse.transform.position;
+        //     mouseOrientation = Mouse.transform.rotation.eulerAngles;
+        // }
 
         // Write the mouse data to a string
-        object[] mouse_data = { Mouse_Position.x, Mouse_Position.y, Mouse_Position.z, Mouse_Orientation.x, Mouse_Orientation.y, Mouse_Orientation.z };
-        mouse_string = string.Join(", ", mouse_data);
+        // object[] mouse_data = { mousePosition.x, mousePosition.y, mousePosition.z, mouseOrientation.x, mouseOrientation.y, mouseOrientation.z };
+        // mouseString = string.Join(", ", mouse_data);
 
-
-        // Process the real cricket position
-        List<OptitrackMarkerState> markerStates = StreamingClient.GetLatestMarkerStates();
-        Cricket_Position = GetCricketPosition(markerStates);
-        Cricket.transform.localPosition = Cricket_Position;
-
-        object[] real_cricket_data = { Cricket_Position.x, Cricket_Position.y, Cricket_Position.z };
-        real_cricket_string = string.Join(", ", real_cricket_data);
+        //-- Process the real cricket position
+        // realCricketPosition = GetRealCricketPosition();
+        // realCricket.transform.localPosition = realCricketPosition;
+        //
+        // object[] real_cricket_data = { realCricketPosition.x, realCricketPosition.y, realCricketPosition.z };
+        // realCricketString = string.Join(", ", real_cricket_data);
+        
+        //-- Loop through the VR Crickets to get their data
+        // foreach (GameObject vrCricketObj in vrCricketObjs)
+        // {
+        //     // Get the VR cricket position and orientation
+        //     vrCricketPosition = vrCricketObj.transform.position;
+        //     vrCricketOrientation = vrCricketObj.transform.rotation.eulerAngles;
+        //
+        //     // Get the VR cricket speed and current motion state
+        //     speed = vrCricketObj.GetComponent<Animator>().GetFloat("speed"); ;
+        //     state = vrCricketObj.GetComponent<Animator>().GetInteger("state_selector");
+        //     motion = vrCricketObj.GetComponent<Animator>().GetInteger("motion_selector");
+        //     encounter = vrCricketObj.GetComponent<Animator>().GetInteger("in_encounter");
+        //
+        //     // Concatenate strings for this cricket object, and add to all cricket string
+        //     object[] cricket_data = {vrCricketPosition.x, vrCricketPosition.y, vrCricketPosition.z,
+        //         vrCricketOrientation.x, vrCricketOrientation.y, vrCricketOrientation.z,
+        //         speed, state, motion, encounter };
+        //
+        //     string thisVRCricket = string.Join(", ", cricket_data);
+        //     List<string> strArray = new List<string> { vrCricketString, thisVRCricket };
+        //
+        //     // Remove leading comma
+        //     vrCricketString = string.Join(", ", strArray.Where(s => !string.IsNullOrEmpty(s)));
+        //
+        // }
 
         //// Process the target object position - this only tracks position
         //// TODO: Make this handle animation states if present for 3D tracking
@@ -203,57 +251,112 @@ public class Recorder_script_AR_cricket : MonoBehaviour
         // --- Data Saving --- //
 
         // Write the mouse and VR cricket info
-        //object[] all_data = { Time_stamp, trial_num, mouse_string, real_cricket_string, target_string, color_factor };
-        object[] all_data = { Time_stamp, trial_num, mouse_string, real_cricket_string, color_factor };
+        object[] all_data = { timeStamp, mouseString, realCricketString, vrCricketString, color_factor };
         writer.WriteLine(string.Join(", ", all_data));
 
     }
 
 
     // --- Functions for tracking objects in the scene --- //
-    Vector3 GetCricketPosition(List<OptitrackMarkerState> markers)
+    void GetMousePosition()
+    {
+        OptitrackRigidBodyState rbState = StreamingClient.GetLatestRigidBodyState(RigidBodyId);
+        if (rbState != null)
+        {
+            // get the position of the mouse Rigid Body
+            mousePosition = rbState.Pose.Position;
+            // change the transform position of the game object
+            this.transform.localPosition = mousePosition;
+            // also change its rotation
+            this.transform.localRotation = rbState.Pose.Orientation;
+            // turn the angles into Euler (for later printing)
+            mouseOrientation = this.transform.eulerAngles;
+            // get the timestamp 
+            timeStamp = rbState.DeliveryTimestamp.SecondsSince(reference);
+        }
+        else
+        {
+            mousePosition = Mouse.transform.position;
+            mouseOrientation = Mouse.transform.rotation.eulerAngles;
+        }
+    }
+    
+    Vector3 GetRealCricketPosition()
     {
         Vector3 outputPosition;
-        List<Vector3> nonlabelledMarkers = new List<Vector3>();
-
-        foreach (OptitrackMarkerState marker in markers)
+        List<Vector3> nonlabeledMarkers = new List<Vector3>();
+        List<OptitrackMarkerState> labeledMarkers = StreamingClient.GetLatestMarkerStates();
+        
+        foreach (OptitrackMarkerState marker in labeledMarkers)
         {
             // Only get markers that are not labeled as part of a RigidBody
             if (marker.Labeled == false)
             {
-                nonlabelledMarkers.Add(marker.Position);
+                nonlabeledMarkers.Add(marker.Position);
                 //Debug.Log (marker.Position);
             }
         }
 
         // Check how many unlabeled markers there are. If there is more than one, find the one closest to the previous
         // position and use that as the cricket position. If there are none, use the last cricket position.
-        if (nonlabelledMarkers.Count == 1)
+        if (nonlabeledMarkers.Count == 1)
         {
             // If there's just a single unlabeled marker, this is our cricket
-            outputPosition = nonlabelledMarkers[0];
+            outputPosition = nonlabeledMarkers[0];
         }
-        else if (nonlabelledMarkers.Count > 1)
+        else if (nonlabeledMarkers.Count > 1)
         {
             // If there is more than one point detected, use the one that's closest to the previous position
-            float[] distances = new float[nonlabelledMarkers.Count];
+            float[] distances = new float[nonlabeledMarkers.Count];
 
-            for (int i = 0; i < nonlabelledMarkers.Count; i++)
+            for (int i = 0; i < nonlabeledMarkers.Count; i++)
             {
-                distances[i] = Math.Abs(Vector3.Distance(nonlabelledMarkers[i], Cricket_Position));
+                distances[i] = Math.Abs(Vector3.Distance(nonlabeledMarkers[i], realCricketPosition));
             }
 
             int minIndex = Array.IndexOf(distances, distances.Min());
-            outputPosition = nonlabelledMarkers[minIndex];
+            outputPosition = nonlabeledMarkers[minIndex];
         }
         else
         {
             // If there is no point found, reuse the current position
-            outputPosition = Cricket.transform.localPosition;
+            outputPosition = realCricket.transform.localPosition;
         }
         return outputPosition;
     }
 
+    string GetVRCricketData()
+    {
+        foreach (GameObject vrCricketObj in vrCricketObjs)
+        {
+            // Get the VR cricket position and orientation
+            vrCricketPosition = vrCricketObj.transform.position;
+            vrCricketOrientation = vrCricketObj.transform.rotation.eulerAngles;
+
+            // Get the VR cricket speed and current motion state
+            speed = vrCricketObj.GetComponent<Animator>().GetFloat("speed"); ;
+            state = vrCricketObj.GetComponent<Animator>().GetInteger("state_selector");
+            motion = vrCricketObj.GetComponent<Animator>().GetInteger("motion_selector");
+            encounter = vrCricketObj.GetComponent<Animator>().GetInteger("in_encounter");
+
+            // Concatenate strings for this cricket object, and add to all cricket string
+            object[] cricket_data = {
+                vrCricketPosition.x, vrCricketPosition.y, vrCricketPosition.z,
+                vrCricketOrientation.x, vrCricketOrientation.y, vrCricketOrientation.z,
+                speed, state, motion, encounter 
+            };
+
+            string thisVRCricket = string.Join(", ", cricket_data);
+            List<string> strArray = new List<string> { vrCricketString, thisVRCricket };
+
+            // Remove leading comma
+            vrCricketString = string.Join(", ", strArray.Where(s => !string.IsNullOrEmpty(s)));
+
+        }
+
+        return vrCricketString;
+    }
+    
     // --- Functions for writing header of data file --- //
     void LogSceneParams()
     {
@@ -289,11 +392,36 @@ public class Recorder_script_AR_cricket : MonoBehaviour
 
     void AssembleHeader()
     {
-        string[] header = {"time_m", "trial_num",
-                           "mouse_x_m", "mouse_y_m", "mouse_z_m",
-                           "mouse_xrot_m", "mouse_yrot_m", "mouse_zrot_m",
-                           "cricket_x_m", "cricket_y_m", "cricket_z_m",    
-                           "color_factor"};
+        
+        string[] mouse_template = {"mouse_x_m", "mouse_y_m", "mouse_z_m",
+                                   "mouse_xrot_m", "mouse_yrot_m", "mouse_zrot_m"};
+
+        string[] realCricket_template = {"cricket_x_m", "cricket_y_m", "cricket_z_m"};
+        
+        string[] vrCricket_template = {"_x", "_y", "_z",
+                                       "_xrot", "_yrot", "_zrot",
+                                       "_speed", "_state", "_motion", "_encounter"};
+        
+        int numCrickets = vrCricketObjs.Length;
+        List<string> vrCricket_cols = new List<string>();
+        
+        // Assemble the VR cricket string depending on how many VR crickets there are
+        for (int i=0; i < numCrickets; i++)
+        {
+            string vcricket = "vrcricket_" + i;
+            foreach (string ct in vrCricket_template)
+            {
+                vrCricket_cols.Add(vcricket + ct);
+            }
+        }
+        
+        // Assemble strings for all animals in scene
+        string mouse_string = string.Join(", ", mouse_template);
+        string realCricket_string = string.Join(", ", realCricket_template);
+        string vrCricket_string = string.Join(", ", vrCricket_cols);
+        
+        object[] header = {"time_m", mouse_string, realCricket_string, vrCricket_string, "color_factor"};
+
         writer.WriteLine(string.Join(", ", header));
     }
 
@@ -337,14 +465,14 @@ public class Recorder_script_AR_cricket : MonoBehaviour
 
     //}
 
-    void SendTrialEnd()
-    {
-        // Send trial end message to Python process
-        OscMessage message = new OscMessage();
-        message.address = "/EndTrial";
-        message.values.Add(trial_num);
-        osc.Send(message);
-    }
+    // void SendTrialEnd()
+    // {
+    //     // Send trial end message to Python process
+    //     OscMessage message = new OscMessage();
+    //     message.address = "/EndTrial";
+    //     message.values.Add(trial_num);
+    //     osc.Send(message);
+    // }
 
     void OnReceiveStop(OscMessage message)
     {

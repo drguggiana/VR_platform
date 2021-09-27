@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
@@ -7,7 +7,7 @@ using System;
 
 
 //[ExecuteInEditMode]
-public class Recorder_script_VR_MC : MonoBehaviour
+public class Recorder_script_VR_empty : MonoBehaviour
 {
     // Streaming client
     public OptitrackStreamingClient StreamingClient;
@@ -72,7 +72,7 @@ public class Recorder_script_VR_MC : MonoBehaviour
         writer = new StreamWriter(Paths.recording_path, true);
 
         // Get cricket object array sorted by name/number
-        CricketObjs = HelperFunctions.FindObsWithTag("vrCricket");
+        CricketObjs = HelperFunctions.FindObsWithTag("Cricket");
 
         // Write initial parameters and header to file
         LogSceneParams();
@@ -133,38 +133,38 @@ public class Recorder_script_VR_MC : MonoBehaviour
         object[] mouse_data = { Mouse_Position.x, Mouse_Position.y, Mouse_Position.z, Mouse_Orientation.x, Mouse_Orientation.y, Mouse_Orientation.z };
         mouse_string = string.Join(", ", mouse_data);
 
-        // Loop through the VR Crickets to get their data
-        foreach (GameObject cricket_obj in CricketObjs)
-        {
-            // Get the VR cricket position and orientation
-            Cricket_Position = cricket_obj.transform.position;
-            Cricket_Orientation = cricket_obj.transform.rotation.eulerAngles;
-
-            // Get the VR cricket speed and current motion state
-            speed = cricket_obj.GetComponent<Animator>().GetFloat("speed"); ;
-            state = cricket_obj.GetComponent<Animator>().GetInteger("state_selector");
-            motion = cricket_obj.GetComponent<Animator>().GetInteger("motion_selector");
-            encounter = cricket_obj.GetComponent<Animator>().GetInteger("in_encounter");
-
-            // Concatenate strings for this cricket object, and add to all cricket string
-            object[] cricket_data = {Cricket_Position.x, Cricket_Position.y, Cricket_Position.z,
-                                     Cricket_Orientation.x, Cricket_Orientation.y, Cricket_Orientation.z,
-                                     speed, state, motion, encounter };
-
-            this_cricket = string.Join(", ", cricket_data);
-
-            List<string> strArray = new List<string> { cricket_string, this_cricket };
-
-            // Remove leading comma
-            cricket_string = string.Join(", ", strArray.Where(s => !string.IsNullOrEmpty(s)));
-
-        }
+        // // Loop through the VR Crickets to get their data
+        // foreach (GameObject cricket_obj in CricketObjs)
+        // {
+        //     // Get the VR cricket position and orientation
+        //     Cricket_Position = cricket_obj.transform.position;
+        //     Cricket_Orientation = cricket_obj.transform.rotation.eulerAngles;
+        //
+        //     // Get the VR cricket speed and current motion state
+        //     speed = cricket_obj.GetComponent<Animator>().GetFloat("speed"); ;
+        //     state = cricket_obj.GetComponent<Animator>().GetInteger("state_selector");
+        //     motion = cricket_obj.GetComponent<Animator>().GetInteger("motion_selector");
+        //     encounter = cricket_obj.GetComponent<Animator>().GetInteger("in_encounter");
+        //
+        //     // Concatenate strings for this cricket object, and add to all cricket string
+        //     object[] cricket_data = {Cricket_Position.x, Cricket_Position.y, Cricket_Position.z,
+        //                              Cricket_Orientation.x, Cricket_Orientation.y, Cricket_Orientation.z,
+        //                              speed, state, motion, encounter };
+        //
+        //     this_cricket = string.Join(", ", cricket_data);
+        //
+        //     List<string> strArray = new List<string> { cricket_string, this_cricket };
+        //
+        //     // Remove leading comma
+        //     cricket_string = string.Join(", ", strArray.Where(s => !string.IsNullOrEmpty(s)));
+        //
+        // }
 
 
         // --- Data Saving --- //
 
         // Write the mouse and VR cricket info
-        object[] all_data = { Time_stamp, mouse_string, cricket_string, color_factor };
+        object[] all_data = { Time_stamp, mouse_string, color_factor };
         writer.WriteLine(string.Join(", ", all_data));
 
         cricket_string = "";
@@ -213,23 +213,23 @@ public class Recorder_script_VR_MC : MonoBehaviour
                                      "_yrot", "_zrot", "_xrot",
                                      "_speed", "_state", "_motion", "_encounter"};
 
-        int numCrickets = CricketObjs.Length;
-        List<string> cricket_cols = new List<string>();
-
-        // Assemble the cricket string depending on how many VR crickets there are
-        for (int i=0; i < numCrickets; i++)
-        {
-            string vcricket = "vrcricket_" + i;
-            foreach (string ct in cricket_template)
-            {
-                cricket_cols.Add(vcricket + ct);
-            }
-        }
+        // int numCrickets = CricketObjs.Length;
+        // List<string> cricket_cols = new List<string>(); ;
+        //
+        // // Assemble the cricket string depending on how many VR crickets there are
+        // for (int i=0; i < numCrickets; i++)
+        // {
+        //     string vcricket = "vrcricket_" + i;
+        //     foreach (string ct in cricket_template)
+        //     {
+        //         cricket_cols.Add(vcricket + ct);
+        //     }
+        // }
 
         string mouse_string = string.Join(", ", mouse_template);
-        string cricket_string = string.Join(", ", cricket_cols);
+        // string cricket_string = string.Join(", ", cricket_cols);
 
-        object[] header = {"time_m", mouse_string, cricket_string, "color_factor"};
+        object[] header = {"time_m", mouse_string, "color_factor"};
         writer.WriteLine(string.Join(", ", header));
     }
 
