@@ -7,6 +7,8 @@ public class CamCubemap7 : MonoBehaviour
 //define the cubemap size
     public int cubemapSize = 1024;
     //declare the camera variable (the special one that will render the cubemap)
+    public Cubemap cubemap;
+    
     private Camera cam;
     //declare the public variable to add the camera transform
     public Transform playerTrans;
@@ -54,25 +56,27 @@ public class CamCubemap7 : MonoBehaviour
             cam.aspect = 1;
             //disable the camera, since it's only used to generate the cubemap
             cam.enabled = false;
-        }
-        //if the render texture hasn't been created
-        if (!rtex)
-        {
-            //create the render texture with the desired size, make it square and depth needs to be a power of two
-            rtex = new RenderTexture(cubemapSize, cubemapSize, 16);
-            //set up the dimension as a cube texture, has to be that way for the rendertocubemap function
-            rtex.dimension = UnityEngine.Rendering.TextureDimension.Cube;
-            //also hide the flags from the inspector
-            rtex.hideFlags = HideFlags.HideAndDontSave;
             //include only the "projector" layer, as defined in the inspector
             cam.cullingMask = 1 << 9;
-            //set the render texture as the texture to be used by the shader (i.e. in the material in the object containint the script)
-            GetComponent<Renderer>().sharedMaterial.SetTexture("_Cube", rtex);
-            //allocate memory for the rotation vector to be sent to the shader
-            //rot = new Vector4();
-            //send the rotation info
-            //GetComponent<Renderer>().sharedMaterial.SetVector("_Rotation", rot);
         }
+        // //if the render texture hasn't been created
+        // if (!rtex)
+        // {
+        //     //create the render texture with the desired size, make it square and depth needs to be a power of two
+        //     rtex = new RenderTexture(cubemapSize, cubemapSize, 16);
+        //     //set up the dimension as a cube texture, has to be that way for the rendertocubemap function
+        //     rtex.dimension = UnityEngine.Rendering.TextureDimension.Cube;
+        //     //also hide the flags from the inspector
+        //     rtex.hideFlags = HideFlags.HideAndDontSave;
+        //     
+        //     //set the render texture as the texture to be used by the shader (i.e. in the material in the object containint the script)
+        //     GetComponent<Renderer>().sharedMaterial.SetTexture("_Cube", rtex);
+        //     //allocate memory for the rotation vector to be sent to the shader
+        //     //rot = new Vector4();
+        //     //send the rotation info
+        //     //GetComponent<Renderer>().sharedMaterial.SetVector("_Rotation", rot);
+        // }
+    
         //update the position of the camera to the player
         cam.transform.position = playerTrans.position;
 
@@ -82,9 +86,10 @@ public class CamCubemap7 : MonoBehaviour
         
         //send the player position information to the shader
         GetComponent<Renderer>().sharedMaterial.SetVector("_Player", new Vector3(playerTrans.position.x, playerTrans.position.y, playerTrans.position.z));
+        
         //actually render the cubemap to the texture, all 6 faces
-        cam.RenderToCubemap(rtex, faceMask);
-
+        cam.RenderToCubemap(cubemap, faceMask);
+        
 
     }
 

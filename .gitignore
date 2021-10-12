@@ -2,10 +2,12 @@
 
 Assets/Models/grille
 Assets/Models/grille.meta
-Assets/Environment/
+Assets/Environment/ 
+Assests/ExternalPackages/
 Assets/ProBuilder Data/
 Assets/ProCore/
 Assets/Prefabs/
+Assets/Samples/
 Assets/Scripts/Paths.cs
 Assets/Scripts/Paths.cs.meta
 

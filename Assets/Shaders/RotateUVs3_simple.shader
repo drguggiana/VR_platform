@@ -1,12 +1,12 @@
-﻿Shader "Custom/RotateUVs3" {
+Shader "Custom/RotateUVs3_simple" {
   	
 	Properties {
 		//add the cubemap texture to the inspector properties (here is where the script will send the cubemap)
 		_Cube ("Reflection Cubemap", Cube) = "_Skybox" {}
-		//this is where the rotation is sent from the script if active (not needed now)
-	    //_Rotation ("Rotation Speed", Vector) = (2,2,2,1)
+
 		//this is the albedo of the output, using default normally
 		_ReflectColor ("Reflection Color", Color) = (1,1,1,0.5)
+		
 		//here is where the script sends the player position
 		_Player ("Player position", Vector) = (0, 0, 0, 0)
 	}
@@ -25,9 +25,6 @@
 		samplerCUBE _Cube;
 		fixed4 _ReflectColor;
 		fixed4 _Player;
-
-        //define the rotation variable here, again, not used so commented
-       //fixed4 _Rotation;
         
 		//define the input structure to the surface shader
         struct Input {
@@ -38,26 +35,6 @@
 	   //actual surface shader code
 		void surf (Input IN, inout SurfaceOutput o) { 
 		
-			//below is the rotation code (i.e. rotate the texture with the players position, not really used now)
-			//float sx = sin ( _Rotation.x  );
-			//float cx = cos ( _Rotation.x  );
-
-			//float3x3 rotationMatrixX = float3x3( 1, 0, 0, 0, cx, -sx, 0, sx, cx);
-
-			//float sy = sin ( _Rotation.y  );
-			//float cy = cos ( _Rotation.y  );
-
-			//float3x3 rotationMatrixY = float3x3( cy, 0, sy, 0, 1, 0, -sy, 0, cy);
-
-			//float sz = sin ( _Rotation.z  );
-			//float cz = cos ( _Rotation.z  );
-
-			//float3x3 rotationMatrixZ = float3x3( cz, -sz, 0, sz, cz, 0, 0, 0, 1);
-
-			//IN.worldRefl = mul(IN.worldRefl, rotationMatrixX);
-			//IN.worldRefl = mul(IN.worldRefl, rotationMatrixY);
-			//IN.worldRefl = mul(IN.worldRefl, rotationMatrixZ); 
-
 			//correct the world position with the position of the player, allowing for the rendering to look as if seen by the player
 			IN.worldPos -= _Player.xyz;
 			//render the cube texture based on the corrected world position coordinates
