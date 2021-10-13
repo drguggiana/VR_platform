@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class AssignGaborParams : MonoBehaviour
@@ -72,6 +73,21 @@ public class AssignGaborParams : MonoBehaviour
         stripesMaterial.SetFloat("_Offset", _Offset);
     }
 
+
+    void CalculateGaussian(RenderTexture tex, float x0, float y0, float sigma)
+    {
+        for (int r = 0; r < tex.height; r++)
+        {
+            for (int c = 0; c < tex.width; c++)
+            {
+                float x = (float) Math.Pow(c - x0, 2) / (2.0f * sigma);
+                float y = (float) Math.Pow(r - y0, 2) / (2.0f * sigma);
+                
+            }
+        }
+    }
+    
+    
     float calculateCyclesOnSphere(float sf, float radius)
     {
         // TODO if not tied to player transform, this isn't valid
