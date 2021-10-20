@@ -122,7 +122,7 @@ Material:
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 1
     - _EnvironmentReflections: 1
-    - _Gain: 1.5
+    - _Gain: 1.44
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
@@ -175,7 +175,7 @@ Material:
     - _Color: {r: 0.49411765, g: 0.49411765, b: 0.49411765, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _MaskColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    - _MaskColor: {r: 0.49411765, g: 0.49411765, b: 0.49411765, a: 1}
     - _NormalScale: {r: 1, g: 1, b: 1, a: 0}
     - _ObjPos: {r: 0, g: 0, b: 0, a: 0}
     - _SpecCol: {r: 1, g: 1, b: 1, a: 1}

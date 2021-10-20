@@ -6,7 +6,7 @@ using System;
 
 
 [ExecuteInEditMode]
-public class Recorder_script_VR_Screen : MonoBehaviour {
+public class Recorder_VR_TargetApproach : MonoBehaviour {
 
     // Streaming client
     public OptitrackStreamingClient StreamingClient;

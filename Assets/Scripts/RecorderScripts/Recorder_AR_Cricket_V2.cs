@@ -6,7 +6,7 @@ using System.Linq;
 using System;
 
 [ExecuteInEditMode]
-public class Recorder_script_AR_cricket_v2 : MonoBehaviour
+public class Recorder_AR_Cricket_V2 : MonoBehaviour
 {
 
     // Streaming client
