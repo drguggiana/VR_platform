@@ -61,6 +61,11 @@ public class AssignGaussianAlpha : MonoBehaviour
     {
 
     }
+
+    public void SetInvert(int invertVal)
+    {
+        maskMaterial.SetInt("_Invert", invertVal);
+    }
     
     float subtendedVisualAngle(float width, float distance)
     {

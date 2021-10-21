@@ -19,9 +19,10 @@ public class AssignSpatialTempFreq : MonoBehaviour
     
     private Material stripesMaterial;
     
-    private float _Frequency;
     private float _Offset = 0;
+    private float _Frequency;
     private float gratingSpeed;
+    private float distanceToRef;
 
 
     // Start is called before the first frame update
@@ -32,8 +33,19 @@ public class AssignSpatialTempFreq : MonoBehaviour
         // Get distance between center of object and reference transform
         // If a sphere, assumes reference is inside the sphere
         // If a plane, assumes object is perpendicular to the reference and centered on it 
-        float distanceToRef = Vector3.Distance(this.transform.position, referencePoint.transform.position);
+        distanceToRef = Vector3.Distance(this.transform.position, referencePoint.transform.position);
+        SetParameters();
+    }
 
+    // Update is called once per frame
+    void Update()
+    {
+        _Offset += gratingSpeed * Time.deltaTime;
+        stripesMaterial.SetFloat("_Offset", _Offset);
+    }
+    
+    public void SetParameters()
+    {
         switch (surfaceType)
         {
             case surfaces.Sphere:
@@ -47,7 +59,6 @@ public class AssignSpatialTempFreq : MonoBehaviour
                 float gamma = subtendedVisualAngle(width, distanceToRef);
                 _Frequency = calculateCyclesOnPlane(spatialFreq, gamma);
                 gratingSpeed = calculateGratingSpeedOnPlane(temporalFreq, spatialFreq, _Frequency, width, distanceToRef, gamma);
-                Debug.Log(gratingSpeed);
                 break;
             
             default:
@@ -58,14 +69,7 @@ public class AssignSpatialTempFreq : MonoBehaviour
         // Assign the number of cycles
         stripesMaterial.SetFloat("_Frequency", _Frequency);
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        _Offset += gratingSpeed * Time.deltaTime;
-        stripesMaterial.SetFloat("_Offset", _Offset);
-    }
-
+    
     float calculateCyclesOnSphere(float sf, float radius)
     {
         // TODO if not tied to player transform, this isn't valid

@@ -34,8 +34,19 @@ public class Recorder_VR_SpatioTemporal_tuning : MonoBehaviour
     // Writer for saving data
     private StreamWriter writer;
     private string mouseString;
-
-
+    
+    // Private variables for the Gabor stimulus
+    public GameObject gaborStim;
+    private AssignSpatialTempFreq _assignSpatialTempFreq;
+    private AssignGaussianAlpha _assignGaussianAlpha;
+    private float _spatialFreq;
+    private float _temporalFreq;
+    private int _invert = 1;
+    
+    // Private variables for the trial structure
+    private int trialNum = 0;
+    
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -43,7 +54,7 @@ public class Recorder_VR_SpatioTemporal_tuning : MonoBehaviour
         Screen.fullScreen = true;
         
         // set the OSC communication
-        //osc.SetAddressHandler("/TrialStart", OnReceiveTrialStart);
+        osc.SetAddressHandler("/TrialStart", OnReceiveTrialStart);
         osc.SetAddressHandler("/Close", OnReceiveStop);
 
         // Get the reference timer
@@ -57,6 +68,9 @@ public class Recorder_VR_SpatioTemporal_tuning : MonoBehaviour
         Paths.CheckFileExistence(Paths.recording_path);
         writer = new StreamWriter(Paths.recording_path, true);
         
+        // Get the scripts for the gabor assignments
+        _assignSpatialTempFreq = gaborStim.GetComponent<AssignSpatialTempFreq>();
+        _assignGaussianAlpha = gaborStim.GetComponentInChildren<AssignGaussianAlpha>();
         
         // Write initial parameters and header to file
         LogSceneParams();
@@ -182,12 +196,54 @@ public class Recorder_VR_SpatioTemporal_tuning : MonoBehaviour
         //
         // object[] header = {"time_m", mouse_string, realCricket_string, vrCricket_string, "color_factor"};
         
-        object[] header = {"time_m", mouse_string, "color_factor"};
+        object[] header = {"time_m", "trial_num", mouse_string, "color_factor"};
         writer.WriteLine(string.Join(", ", header));
     }
 
 
     // --- Handle OSC Communication --- //
+        void OnReceiveTrialStart (OscMessage message)
+    {
+        // Parse the values for trial setup
+        trialNum = int.Parse(message.values[0].ToString());
+        _spatialFreq = float.Parse(message.values[1].ToString());
+        _temporalFreq = float.Parse(message.values[2].ToString());
+
+        // Assign the spatial and temporal frequency values
+        _assignSpatialTempFreq.spatialFreq = _spatialFreq;
+        _assignSpatialTempFreq.temporalFreq = -_temporalFreq;
+        
+        // Open up the Alpha mask
+        _assignGaussianAlpha.SetInvert(0);
+        
+        
+        // Send handshake message to Python process to confirm receipt of parameters
+        OscMessage handshake = new OscMessage
+        {
+            address = "/Handshake"
+        };
+        handshake.values.Add(trialNum);
+        osc.Send(handshake);
+
+        // // Set up the newest trial
+        // targetController.SetupNewTrial();
+        //
+        // // Set booleans that tell us we are now in a trial
+        // inTrial = targetController.inTrial;
+        // trialDone = targetController.trialDone;
+
+    }
+
+    void SendTrialEnd ()
+    {
+        // Send trial end message to Python process
+        OscMessage message = new OscMessage
+        {
+            address = "/EndTrial"
+        };
+        message.values.Add(trialNum);
+        osc.Send(message);
+    }
     void OnReceiveStop(OscMessage message)
     {
         // Close the writer
