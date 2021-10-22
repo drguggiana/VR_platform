@@ -107,7 +107,7 @@ Material:
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
-    - _Cycles: 4.6
+    - _Cycles: 3
     - _DepthOffsetEnable: 0
     - _DetailNormalMapScale: 1
     - _Direction: 0

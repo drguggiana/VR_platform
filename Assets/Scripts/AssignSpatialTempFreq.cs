@@ -15,7 +15,7 @@ public class AssignSpatialTempFreq : MonoBehaviour
     public surfaces surfaceType;
     public Transform referencePoint;
     public float spatialFreq;     // units: cycles/deg
-    public float temporalFreq;    // units: Hz
+    public float temporalFreq;    // units: cycles/sec
     
     private Material stripesMaterial;
     
@@ -29,6 +29,10 @@ public class AssignSpatialTempFreq : MonoBehaviour
     void Start()
     {
         stripesMaterial = GetComponent<Renderer>().material;
+        
+        // This is interesting because the temporal frequency is set by the linear motion of the UV, and not the stripes
+        // themselves. For a sphere, it is the same on a 
+        // gratingSpeed = temporalFreq;
         
         // Get distance between center of object and reference transform
         // If a sphere, assumes reference is inside the sphere
@@ -50,15 +54,15 @@ public class AssignSpatialTempFreq : MonoBehaviour
         {
             case surfaces.Sphere:
                 float radius = GetComponent<MeshRenderer>().bounds.size.magnitude / 2.0f;
-                _Frequency = calculateCyclesOnSphere(spatialFreq, radius);
-                gratingSpeed = calculateGratingSpeedOnSphere(temporalFreq, spatialFreq, _Frequency, radius);
+                _Cycles = calculateCyclesOnSphere(spatialFreq, radius);
+                gratingSpeed = temporalFreq; //calculateGratingSpeedOnSphere(temporalFreq, radius);
                 break;
             
             case surfaces.Plane:
                 float width = GetComponent<MeshRenderer>().bounds.size.x;
                 float gamma = subtendedVisualAngle(width, distanceToRef);
-                _Frequency = calculateCyclesOnPlane(spatialFreq, gamma);
-                gratingSpeed = calculateGratingSpeedOnPlane(temporalFreq, spatialFreq, _Frequency, width, distanceToRef, gamma);
+                _Cycles = calculateCyclesOnPlane(spatialFreq, gamma);
+                gratingSpeed = temporalFreq;    
                 break;
             
             default:
@@ -67,28 +71,23 @@ public class AssignSpatialTempFreq : MonoBehaviour
         }
         
         // Assign the number of cycles
-        stripesMaterial.SetFloat("_Frequency", _Frequency);
+        stripesMaterial.SetFloat("_Cycles", _Cycles);
     }
     
     float calculateCyclesOnSphere(float sf, float radius)
     {
+        // Assumes that spatial frequency comes in cycles/deg
+
         // TODO if not tied to player transform, this isn't valid
         // Get distance between center of sphere and reference transform
         // float distance = Vector3.Distance(this.transform.position, referencePoint.transform.position);
         
-
-        // Assumes that spatial frequency comes in cycles/deg
-        float cycles = sf * 180.0f;
-        return cycles;
+        return sf * 180.0f;
     }
     
-    float calculateGratingSpeedOnSphere(float tf, float sf, float numCycles, float radius)
+    float calculateGratingSpeedOnSphere(float tf, float radius)
     {
-        // Get the unit distance per cycle
-        float cycleDist = arcLengthDeg(radius, 1.0f) / (sf * numCycles);
-        
-        // Multiply by temporal frequency to get the speed of the grating
-        return tf * cycleDist;
+        return tf * radius / arcLength(radius, 90.0f);
     }
     
     float calculateCyclesOnPlane(float sf, float visAngle)
@@ -101,16 +100,15 @@ public class AssignSpatialTempFreq : MonoBehaviour
     float calculateGratingSpeedOnPlane(float tf, float sf, float numCycles, float width, float distance, float visAngle)
     {
         // Get the unit distance per cycle
-        float distPerDegree = width / visAngle;
         float cycleDist = width / numCycles;
-        Debug.Log(cycleDist);
-        
+
         // Multiply by temporal frequency to get the speed of the grating
-        return tf * cycleDist;
+        return tf;
     }
 
-    float arcLengthDeg(float radius, float angle)
+    float arcLength(float radius, float angle)
     {
+        // Units are meters
         return radius * angle * ((float)Math.PI / 180.0f);
     }
 

@@ -7,7 +7,7 @@ using System;
 using UnityEngine.Serialization;
 
 [ExecuteInEditMode]
-public class Recorder_VR_SpatioTemporal_tuning : MonoBehaviour
+public class Recorder_VR_SpatioTemporal_Tuning : MonoBehaviour
 {
     
     // Streaming client
@@ -17,16 +17,16 @@ public class Recorder_VR_SpatioTemporal_tuning : MonoBehaviour
     // OSC communication client
     public OSC osc;
 
-    // Variables for tracking square
-    public GameObject trackingSquare;
-    private float color_factor = 0.0f;
-    private Color new_color;
-
     // Variables for mouse position
     public GameObject mouseObj;
     private Vector3 mousePosition;
     private Vector3 mouseOrientation;
     
+    // Variables for tracking square
+    public GameObject trackingSquare;
+    private Material trackingSqaureMaterial;
+    private float color_factor = 0.0f;
+
     // Timer
     private OptitrackHiResTimer.Timestamp reference;
     private float timeStamp;
@@ -50,6 +50,9 @@ public class Recorder_VR_SpatioTemporal_tuning : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // Get the tracking square material
+        trackingSqaureMaterial = trackingSquare.GetComponent<Renderer>().material;
+    
         // Force full screen on projector
         Screen.fullScreen = true;
         
@@ -73,7 +76,7 @@ public class Recorder_VR_SpatioTemporal_tuning : MonoBehaviour
         _assignGaussianAlpha = gaborStim.GetComponentInChildren<AssignGaussianAlpha>();
         
         // Write initial parameters and header to file
-        LogSceneParams();
+        HelperFunctions.LogSceneParams(writer);
         AssembleHeader();
     }
 
@@ -87,11 +90,28 @@ public class Recorder_VR_SpatioTemporal_tuning : MonoBehaviour
          */
 
         // --- Handle the tracking square --- //
+        SetTrackingSqaure();
+        
+        // --- Handle mouse data --- //
 
+        GetMousePosition();
+        object[] mouseData = { mousePosition.x, mousePosition.y, mousePosition.z, 
+                               mouseOrientation.x, mouseOrientation.y, mouseOrientation.z };
+        mouseString = string.Join(", ", mouseData);
+        
+        // --- Data Saving --- //
+        object[] all_data = { timeStamp, mouseString, color_factor };
+        writer.WriteLine(string.Join(", ", all_data));
+    }
+    
+    
+    // --- Functions for tracking objects in the scene --- //
+    void SetTrackingSqaure()
+    {
         // create the color for the square
-        new_color = new Color(color_factor, color_factor, color_factor, 1f);
+        Color new_color = new Color(color_factor, color_factor, color_factor, 1f);
         // put it on the square 
-        trackingSquare.GetComponent<Renderer>().sharedMaterial.SetColor("_Color", new_color);
+        trackingSqaureMaterial.SetColor("_Color", new_color);
         // Define the color for the next iteration (switch it)
         if (color_factor > 0.0f)
         {
@@ -101,14 +121,14 @@ public class Recorder_VR_SpatioTemporal_tuning : MonoBehaviour
         {
             color_factor = 1.0f;
         }
+    }
         
-        // --- Handle mouse, cricket, and target data --- //
-
-        // Process the mouse position as the other scripts
+    void GetMousePosition()
+    {
         OptitrackRigidBodyState rbState = StreamingClient.GetLatestRigidBodyState(RigidBodyId);
         if (rbState != null)
         {
-            // get the position of the mouse RB
+            // get the position of the mouse Rigid Body
             mousePosition = rbState.Pose.Position;
             // change the transform position of the game object
             this.transform.localPosition = mousePosition;
@@ -124,45 +144,10 @@ public class Recorder_VR_SpatioTemporal_tuning : MonoBehaviour
             mousePosition = mouseObj.transform.position;
             mouseOrientation = mouseObj.transform.rotation.eulerAngles;
         }
-
-        // Write the mouse data to a string
-        object[] mouse_data = { mousePosition.x, mousePosition.y, mousePosition.z, 
-                                mouseOrientation.x, mouseOrientation.y, mouseOrientation.z };
-        mouseString = string.Join(", ", mouse_data);
     }
     
-        // --- Functions for writing header of data file --- //
-    void LogSceneParams()
-    {
-        // handle arena corners
-        string[] corners = new string[4];
-
-        int i = 0;
-        foreach (GameObject corner in HelperFunctions.FindObsWithTag("Corner"))
-        {
-            Vector3 corner_position = corner.transform.position;
-            object[] corner_coord = { corner_position.x, corner_position.z };
-            string arena_corner = "[" + string.Join(",", corner_coord) + "]";
-            corners[i] = arena_corner;
-            i++;
-        }
-
-        string arena_corners_string = string.Concat("arena_corners: ", "[", string.Join(",", corners), "]");
-        writer.WriteLine(arena_corners_string);
-
-        // handle any obstacles in the arena. This only logs the centroid of the obstacle
-        foreach (GameObject obstacle in HelperFunctions.FindObsWithTag("Obstacle"))
-        {
-            string this_obstacle = obstacle.name.ToString().ToLower();
-            Vector3 obstacle_position = obstacle.transform.position;
-            object[] obstacle_coords = { obstacle_position.x, obstacle_position.y, obstacle_position.z };
-            this_obstacle = string.Concat(this_obstacle + "obs: ", " [", string.Join(",", obstacle_coords), "]");
-            writer.WriteLine(this_obstacle);
-        }
-
-        // once done, write a blank line
-        writer.WriteLine(string.Empty);
-    }
+    
+    // --- Functions for writing header of data file --- //
 
     void AssembleHeader()
     {

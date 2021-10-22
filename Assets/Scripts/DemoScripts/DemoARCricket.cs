@@ -15,7 +15,7 @@ public class DemoARCricket : MonoBehaviour
     public Int32 RigidBodyId;
     
     // Variables for mouse position
-    public GameObject Mouse;
+    public GameObject mouseObj;
     private Vector3 mousePosition;
     private Vector3 mouseOrientation;
     
@@ -96,8 +96,8 @@ public class DemoARCricket : MonoBehaviour
         }
         else
         {
-            mousePosition = Mouse.transform.position;
-            mouseOrientation = Mouse.transform.rotation.eulerAngles;
+            mousePosition = mouseObj.transform.position;
+            mouseOrientation = mouseObj.transform.rotation.eulerAngles;
         }
     }
     
