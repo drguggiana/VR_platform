@@ -7,7 +7,7 @@ using System;
 using UnityEngine.Serialization;
 
 [ExecuteInEditMode]
-public class Recorder_VR_SpatioTemporal_Tuning : MonoBehaviour
+public class Recorder_VR_SpatioTemporalTuning : MonoBehaviour
 {
     
     // Streaming client
@@ -25,7 +25,7 @@ public class Recorder_VR_SpatioTemporal_Tuning : MonoBehaviour
     // Variables for tracking square
     public GameObject trackingSquare;
     private Material trackingSqaureMaterial;
-    private float color_factor = 0.0f;
+    private float colorFactor = 0.0f;
 
     // Timer
     private OptitrackHiResTimer.Timestamp reference;
@@ -41,24 +41,23 @@ public class Recorder_VR_SpatioTemporal_Tuning : MonoBehaviour
     private AssignGaussianAlpha _assignGaussianAlpha;
     private float _spatialFreq;
     private float _temporalFreq;
-    private int _invert = 1;
-    
+
     // Private variables for the trial structure
+    private float trialTimer = 0;
+    private int _trialNum = 0;    // This is a variable that temporarily holds the trial number
     private int trialNum = 0;
+    private bool inTrial = false;
+    private bool inSession = false;
+    private float trialDuration;         // In seconds
+    private float interStimInterval;     // In seconds
     
     
     // Start is called before the first frame update
     void Start()
     {
-        // Get the tracking square material
-        trackingSqaureMaterial = trackingSquare.GetComponent<Renderer>().material;
-    
+        // -- These get called in every recorder script
         // Force full screen on projector
         Screen.fullScreen = true;
-        
-        // set the OSC communication
-        osc.SetAddressHandler("/TrialStart", OnReceiveTrialStart);
-        osc.SetAddressHandler("/Close", OnReceiveStop);
 
         // Get the reference timer
         reference = OptitrackHiResTimer.Now();
@@ -66,18 +65,31 @@ public class Recorder_VR_SpatioTemporal_Tuning : MonoBehaviour
         // Set up the camera (so it doesn't clip objects too close to the mouse)
         Camera cam = GetComponentInChildren<Camera>();
         cam.nearClipPlane = 0.000001f;
+        
+        // Get the tracking square material
+        trackingSqaureMaterial = trackingSquare.GetComponent<Renderer>().material;
 
+        // set the OSC communication
+        osc.SetAddressHandler("/Close", OnReceiveStop);
+        
         // Set the writer
         Paths.CheckFileExistence(Paths.recording_path);
         writer = new StreamWriter(Paths.recording_path, true);
         
+        // Write initial parameters and header to file
+        HelperFunctions.LogSceneParams(writer);
+        // -------------------------------------------
+        
+        // -- These are specific to the particular scene
+        osc.SetAddressHandler("/SetupExperiment", OnReceiveExpSetup);
+        osc.SetAddressHandler("/TrialSetup", OnReceiveTrialSetup);
+
         // Get the scripts for the gabor assignments
         _assignSpatialTempFreq = gaborStim.GetComponent<AssignSpatialTempFreq>();
         _assignGaussianAlpha = gaborStim.GetComponentInChildren<AssignGaussianAlpha>();
-        
-        // Write initial parameters and header to file
-        HelperFunctions.LogSceneParams(writer);
+
         AssembleHeader();
+        // -------------------------------------------
     }
 
     // Update is called once per frame
@@ -93,15 +105,35 @@ public class Recorder_VR_SpatioTemporal_Tuning : MonoBehaviour
         SetTrackingSqaure();
         
         // --- Handle mouse data --- //
-
         GetMousePosition();
         object[] mouseData = { mousePosition.x, mousePosition.y, mousePosition.z, 
                                mouseOrientation.x, mouseOrientation.y, mouseOrientation.z };
         mouseString = string.Join(", ", mouseData);
         
+        // --- Handle trial structure --- //
+        if (inSession)
+        {
+            trialTimer += Time.deltaTime;
+            
+            if (inTrial)
+            {
+                if (trialTimer > trialDuration)
+                {
+                    EndTrial();
+                }
+            }
+            else
+            {
+                if (trialTimer > interStimInterval)
+                {
+                    StartTrial();
+                }
+            }
+        }
+
         // --- Data Saving --- //
-        object[] all_data = { timeStamp, mouseString, color_factor };
-        writer.WriteLine(string.Join(", ", all_data));
+        object[] allData = { timeStamp, trialNum, mouseString, colorFactor };
+        writer.WriteLine(string.Join(", ", allData));
     }
     
     
@@ -109,17 +141,17 @@ public class Recorder_VR_SpatioTemporal_Tuning : MonoBehaviour
     void SetTrackingSqaure()
     {
         // create the color for the square
-        Color new_color = new Color(color_factor, color_factor, color_factor, 1f);
+        Color newColor = new Color(colorFactor, colorFactor, colorFactor, 1f);
         // put it on the square 
-        trackingSqaureMaterial.SetColor("_Color", new_color);
+        trackingSqaureMaterial.SetColor("_Color", newColor);
         // Define the color for the next iteration (switch it)
-        if (color_factor > 0.0f)
+        if (colorFactor > 0.0f)
         {
-            color_factor = 0.0f;
+            colorFactor = 0.0f;
         }
         else
         {
-            color_factor = 1.0f;
+            colorFactor = 1.0f;
         }
     }
         
@@ -148,7 +180,6 @@ public class Recorder_VR_SpatioTemporal_Tuning : MonoBehaviour
     
     
     // --- Functions for writing header of data file --- //
-
     void AssembleHeader()
     {
         
@@ -185,22 +216,62 @@ public class Recorder_VR_SpatioTemporal_Tuning : MonoBehaviour
         writer.WriteLine(string.Join(", ", header));
     }
 
-
-    // --- Handle OSC Communication --- //
-        void OnReceiveTrialStart (OscMessage message)
+    // --- Functions for handling the trial structure of the task --- //
+    void StartTrial()
     {
-        // Parse the values for trial setup
-        trialNum = int.Parse(message.values[0].ToString());
+        // handle booleans
+        inTrial = true;
+        
+        // Assign trial number for recording
+        trialNum = _trialNum;
+        
+        // Assign the spatial and temporal frequencies and update the stripes material
+        _assignSpatialTempFreq.spatialFreq = _spatialFreq;
+        _assignSpatialTempFreq.temporalFreq = _temporalFreq;
+        _assignSpatialTempFreq.uvOffset = 0;
+        _assignSpatialTempFreq.SetParameters();
+        
+        // Open up the alpha mask
+        _assignGaussianAlpha.SetInvert(0);
+
+        // Reset trial timer
+        trialTimer = 0;
+    }
+    
+    void EndTrial()
+    {
+        // Set boolean to tell us we are now in done with a trial
+        inTrial = false;
+        
+        // Close the Alpha mask
+        _assignGaussianAlpha.SetInvert(1);
+        
+        // Send message to the Python process that the trial is over
+        SendTrialEnd();
+        
+        // Reset trial number
+        trialNum = 0;
+        
+        // Reset trial timer
+        trialTimer = 0;
+    }
+    
+    // --- Handle OSC Communication --- //
+    void OnReceiveExpSetup(OscMessage message)
+    {
+        // Parse the values for trial structure setup
+        trialDuration = float.Parse(message.values[0].ToString());
+        interStimInterval = float.Parse(message.values[1].ToString());
+        
+        // Set boolean that we are now in the experimental session
+        inSession = true;
+    }
+    void OnReceiveTrialSetup(OscMessage message)
+    {
+        // Parse the values for trial structure setup
+        _trialNum = int.Parse(message.values[0].ToString());
         _spatialFreq = float.Parse(message.values[1].ToString());
         _temporalFreq = float.Parse(message.values[2].ToString());
-
-        // Assign the spatial and temporal frequency values
-        _assignSpatialTempFreq.spatialFreq = _spatialFreq;
-        _assignSpatialTempFreq.temporalFreq = -_temporalFreq;
-        
-        // Open up the Alpha mask
-        _assignGaussianAlpha.SetInvert(0);
-        
         
         // Send handshake message to Python process to confirm receipt of parameters
         OscMessage handshake = new OscMessage
@@ -209,14 +280,6 @@ public class Recorder_VR_SpatioTemporal_Tuning : MonoBehaviour
         };
         handshake.values.Add(trialNum);
         osc.Send(handshake);
-
-        // // Set up the newest trial
-        // targetController.SetupNewTrial();
-        //
-        // // Set booleans that tell us we are now in a trial
-        // inTrial = targetController.inTrial;
-        // trialDone = targetController.trialDone;
-
     }
 
     void SendTrialEnd ()
@@ -231,6 +294,8 @@ public class Recorder_VR_SpatioTemporal_Tuning : MonoBehaviour
     }
     void OnReceiveStop(OscMessage message)
     {
+        // Set the boolean or session end
+        inSession = false;
         // Close the writer
         writer.Close();
         // Kill the application

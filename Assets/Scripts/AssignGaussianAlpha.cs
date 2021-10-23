@@ -14,12 +14,11 @@ public class AssignGaussianAlpha : MonoBehaviour
     public surfaces surfaceType;
     public Transform referencePoint;
     public float gaborSize;     // units: deg
-
+    
     private Material maskMaterial;
     private RenderTexture maskTexture;
     
     private float _GaborSize;
-    private int _Invert;
 
 
     // Start is called before the first frame update

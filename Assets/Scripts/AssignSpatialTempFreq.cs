@@ -16,11 +16,12 @@ public class AssignSpatialTempFreq : MonoBehaviour
     public Transform referencePoint;
     public float spatialFreq;     // units: cycles/deg
     public float temporalFreq;    // units: cycles/sec
+    public float uvOffset = 0;
+    
     
     private Material stripesMaterial;
-    
-    private float _Offset = 0;
-    private float _Frequency;
+
+    private float _Cycles;
     private float gratingSpeed;
     private float distanceToRef;
 
@@ -44,8 +45,8 @@ public class AssignSpatialTempFreq : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        _Offset += gratingSpeed * Time.deltaTime;
-        stripesMaterial.SetFloat("_Offset", _Offset);
+        uvOffset += gratingSpeed * Time.deltaTime;
+        stripesMaterial.SetFloat("_Offset", uvOffset);
     }
     
     public void SetParameters()
