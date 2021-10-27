@@ -1,47 +1,29 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System.IO;
-using System;
+﻿using UnityEngine;
 
+/*
+ This class is a child of the RecorderBase class. It inherits most of its functionality from there.
+ See RecorderBase for detailed explanation of what goes on under the hood.
+ 
+ This class is responsible for sending and receiving information about the trial parameters from
+ Python, communicating with the target controller, handling trial timing, logging the mouse position 
+ from the Optitrack system, logging the target position, and logging the current time and color of 
+ the tracking square.
+*/
 
 [ExecuteInEditMode]
-public class Recorder_VR_TargetApproach : MonoBehaviour {
-
-    // Streaming client
-    public OptitrackStreamingClient StreamingClient;
-
-    // OSC communication client
-    public OSC osc;
-
-    // Variables for tracking square
-    public GameObject tracking_square;
-    private float color_factor = 0.0f;
-    private Color new_color;
-
-    // Variables for mouse position
-    public GameObject MouseObj;
-    private Vector3 Mouse_Position;
-    private Vector3 Mouse_Orientation;
-
-    // Rigid body ID for mouse tracking
-    public Int32 RigidBodyId;    
-
-    // Timer
-    private OptitrackHiResTimer.Timestamp reference;
-    private float Time_stamp;
+public class Recorder_VR_TargetApproach : RecorderBase {
 
     // Variables for target object transforms and states
-    public GameObject TargetObj;
+    public GameObject targetObj;
     public TargetController targetController;
-    private Vector3 Target_Position;
+    private Vector3 _targetPosition;
 
     // Booleans for trial state
-    private bool trialDone = true;
-    private bool inTrial = false;
+    private bool _trialDone = true;
+    private bool _inTrial = false;
 
     // Variables for properties of the target that are manipulated
-    private int trial_num = 0;
+    private int _trialNum = 0;
     private int shape;
     private Vector3 scale;    
     private Vector4 screen_color;
@@ -49,184 +31,88 @@ public class Recorder_VR_TargetApproach : MonoBehaviour {
     private float speed;
     private float acceleration;
     private int trajectory;
-
-    // Writer for saving data
-    private StreamWriter writer;
-    private string mouse_string;
-    private string target_string;
-
+    
     // For debugging
-    private int counter = 0;
+    private int _counter = 0;
 
 
     // Use this for initialization
-    void Start () {
-
+    protected override void Start () {
+        
+        base.Start();
+        
         // set the OSC communication
         osc.SetAddressHandler("/TrialStart", OnReceiveTrialStart);
-        osc.SetAddressHandler("/Close", OnReceiveStop);
-
-        // Force full screen on projector
-        Screen.fullScreen = true;
-
-        // Get the reference timer
-        reference = OptitrackHiResTimer.Now();
-
-        // Set up the camera (so it doesn't clip objects too close to the mouse)
-        Camera cam = GetComponentInChildren<Camera>();
-        cam.nearClipPlane = 0.000001f;
-
-        // Set the writer
-        Paths.CheckFileExistence(Paths.recording_path);
-        writer = new StreamWriter(Paths.recording_path, true);
-
-        // Write initial parameters and header to file
-        LogSceneParams();
+        
+        // Write header to file. This 
         AssembleHeader();
     }
 
     // Update is called once per frame
-    void Update () {
+    protected override void Update() {
         // For debugging only
         #if (UNITY_EDITOR)
-            counter++;
+            _counter++;
 
-            if ((counter % 240 == 0) & trialDone)
+            if ((_counter % 240 == 0) & _trialDone)
             {
                 targetController.SetupNewTrial();
-                inTrial = targetController.inTrial;
-                trialDone = targetController.trialDone;
+                _inTrial = targetController.inTrial;
+                _trialDone = targetController.trialDone;
             }
         #endif
 
         // --- If in trial, check if the trial is done yet --- //
-        if (inTrial)
+        if (_inTrial)
         {
-            trialDone = targetController.trialDone;
+            _trialDone = targetController.trialDone;
 
-            if (trialDone)
+            if (_trialDone)
             {
                 Debug.Log("Trial Done");
                 // Tell Python that the trial ended
                 SendTrialEnd();
                 // Reset the booleans
-                inTrial = false;
+                _inTrial = false;
                 // Reset trial number to zero
-                trial_num = 0;
-
-                counter = 0;
+                _trialNum = 0;
+                _counter = 0;
             }
         }
-
-
-        /* 
-         * Below this point, all updates are done on every frame. 
-         * They are recorded regardless of if we are in a trial or not.
-         */
-
-        // --- Handle the tracking square --- //
-    
-        // create the color for the square
-        new_color = new Color(color_factor, color_factor, color_factor, 1f);
-        // put it on the square 
-        tracking_square.GetComponent<Renderer>().material.SetColor("_Color", new_color);
-        // Define the color for the next iteration (switch it)
-        if (color_factor > 0.0f)
-        {
-            color_factor = 0.0f;
-        }
-        else
-        {
-            color_factor = 1.0f;
-        }
-
-
-
+        
+        // -- Run the basic frame update function -- //
+        base.Update();
+        
         // --- Handle mouse and target data --- //
-
-        // Process the mouse position as the other scripts
-        OptitrackRigidBodyState rbState = StreamingClient.GetLatestRigidBodyState(RigidBodyId);
-        if (rbState != null)
-        {
-            // get the position of the mouse RB
-            Mouse_Position = rbState.Pose.Position;
-            // change the transform position of the game object
-            this.transform.localPosition = Mouse_Position;
-            // also change its rotation
-            this.transform.localRotation = rbState.Pose.Orientation;
-            // turn the angles into Euler (for later printing)
-            Mouse_Orientation = this.transform.eulerAngles;
-            // get the timestamp 
-            Time_stamp = rbState.DeliveryTimestamp.SecondsSince(reference);
-        }
-        else
-        {
-            Mouse_Position = MouseObj.transform.position;
-            Mouse_Orientation = MouseObj.transform.rotation.eulerAngles;
-        }
-
+        
         // Write the mouse data to a string
-        object[] mouse_data = {Mouse_Position.x, Mouse_Position.y, Mouse_Position.z, Mouse_Orientation.x, Mouse_Orientation.y, Mouse_Orientation.z};
-        mouse_string = string.Join(", ", mouse_data);
-
-
+        object[] mouseData = { MousePosition.x, MousePosition.y, MousePosition.z, 
+                               MouseOrientation.x, MouseOrientation.y, MouseOrientation.z };
+        string mouseString = string.Join(", ", mouseData);
+        
         // Process the target object position - this only tracks position
         // TODO: Make this handle animation states if present for 3D tracking
-        if (trial_num > 0)
+        if (_trialNum > 0)
         {
-            Target_Position = TargetObj.transform.position;
+            _targetPosition = targetObj.transform.position;
         }
         else
         {
-            Target_Position = new Vector3(-1.0f, -1.0f, -1.0f);
+            _targetPosition = new Vector3(-1.0f, -1.0f, -1.0f);
         }
 
         // Write the target data to a string
-        object[] target_data = {Target_Position.x, Target_Position.y, Target_Position.z};
-        target_string = string.Join(", ", target_data);
+        object[] targetData = {_targetPosition.x, _targetPosition.y, _targetPosition.z};
+        string targetString = string.Join(", ", targetData);
 
         // --- Data Saving --- //
-
         // Write the mouse and VR cricket info
-        object[] all_data = { Time_stamp, trial_num, mouse_string, target_string, color_factor };
-        writer.WriteLine(string.Join(", ", all_data));
+        object[] allData = { TimeStamp, _trialNum, mouseString, targetString, ColorFactor };
+        Writer.WriteLine(string.Join(", ", allData));
 
     }
-
-
+    
     // Functions for writing header of data file
-    void LogSceneParams ()
-    {
-        // handle arena corners
-        string[] corners = new string[4];
-
-        int i = 0;
-        foreach (GameObject corner in HelperFunctions.FindObsWithTag("Corner"))
-        {
-            Vector3 corner_position = corner.transform.position;
-            object[] corner_coord = {corner_position.x, corner_position.z};
-            string arena_corner = "[" + string.Join(",", corner_coord) + "]";
-            corners[i] = arena_corner;
-            i++;
-        }
-
-        string arena_corners_string = string.Concat("arena_corners: ", "[", string.Join(",", corners), "]");
-        writer.WriteLine(arena_corners_string);
-
-        // handle any obstacles in the arena. This only logs the centroid of the obstacle
-        foreach (GameObject obstacle in HelperFunctions.FindObsWithTag("Obstacle"))
-        {
-            string this_obstacle = obstacle.name.ToString().ToLower();
-            Vector3 obstacle_position = obstacle.transform.position;
-            object[] obstacle_coords = {obstacle_position.x, obstacle_position.y, obstacle_position.z};
-            this_obstacle = string.Concat(this_obstacle + "obs: ", " [", string.Join(",", obstacle_coords), "]");
-            writer.WriteLine(this_obstacle);
-        }
-
-        // once done, write a blank line
-        writer.WriteLine(string.Empty);
-    }
-
     void AssembleHeader ()
     {
         string[] header = {"time_m", "trial_num",
@@ -235,15 +121,14 @@ public class Recorder_VR_TargetApproach : MonoBehaviour {
                            "target_x_m", "target_y_m", "target_z_m",
                            "color_factor"};
 
-        writer.WriteLine(string.Join(", ", header));
+        Writer.WriteLine(string.Join(", ", header));
     }
-
-
+    
     // --- Handle OSC Communication --- //
     void OnReceiveTrialStart (OscMessage message)
     {
         // Parse the values for trial setup
-        trial_num = int.Parse(message.values[0].ToString());
+        _trialNum = int.Parse(message.values[0].ToString());
         shape = int.Parse(message.values[1].ToString());          // This is an integer representing the index of the child object of Target obj in scene
         scale = HelperFunctions.StringToVector3(message.values[2].ToString());    // Vector3 defining the scale of the target
         screen_color = HelperFunctions.StringToVector4(message.values[3].ToString());    // Vector4 defining screen color in RGBA
@@ -266,15 +151,15 @@ public class Recorder_VR_TargetApproach : MonoBehaviour {
         {
             address = "/Handshake"
         };
-        handshake.values.Add(trial_num);
+        handshake.values.Add(_trialNum);
         osc.Send(handshake);
 
         // Set up the newest trial
         targetController.SetupNewTrial();
 
         // Set booleans that tell us we are now in a trial
-        inTrial = targetController.inTrial;
-        trialDone = targetController.trialDone;
+        _inTrial = targetController.inTrial;
+        _trialDone = targetController.trialDone;
 
     }
 
@@ -285,16 +170,8 @@ public class Recorder_VR_TargetApproach : MonoBehaviour {
         {
             address = "/EndTrial"
         };
-        message.values.Add(trial_num);
+        message.values.Add(_trialNum);
         osc.Send(message);
     }
-
-    void OnReceiveStop (OscMessage message)
-    {
-        // Close the writer
-        writer.Close();
-        // Kill the application
-        Application.Quit();
-    }
-
+    
  }

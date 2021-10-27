@@ -248,7 +248,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 303620639}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a331805347588fe4a8161c8875d24396, type: 3}
   m_Name: 
@@ -266,7 +266,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh-1308
+  m_Name: pb_Mesh21742
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -430,7 +430,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh-1320
+  m_Name: pb_Mesh-1302
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -762,7 +762,7 @@ PrefabInstance:
     - target: {fileID: 20856878786159182, guid: e45037862af4ac641a9a461284ec0001,
         type: 3}
       propertyPath: near clip plane
-      value: 0.01
+      value: 0.000001
       objectReference: {fileID: 0}
     - target: {fileID: 20856878786159182, guid: e45037862af4ac641a9a461284ec0001,
         type: 3}
@@ -938,6 +938,12 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 646342795}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &734884085 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4367491568582559081, guid: 14b23f5fa098a87478de8cccef28774d,
+    type: 3}
+  m_PrefabInstance: {fileID: 4367491568376666343}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &879008261
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -967,7 +973,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4345391649847414, guid: ffbd4b7b7258cd3458a6931256b2fe35, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.853
+      value: 0.864
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ffbd4b7b7258cd3458a6931256b2fe35, type: 3}
@@ -1135,7 +1141,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!64 &1133489227
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1249,17 +1255,17 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1174232804}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4467846300fea264089c393f53489450, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  StreamingClient: {fileID: 303620641}
-  RigidBodyId: 4
+  streamingClient: {fileID: 303620641}
+  rigidBodyID: 4
   osc: {fileID: 1005790155}
-  mouseObj: {fileID: 1174232804}
   trackingSquare: {fileID: 986857966}
-  gaborStim: {fileID: 0}
+  mouse: {fileID: 1174232804}
+  gaborStim: {fileID: 734884085}
 --- !u!114 &1174232807
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1282,7 +1288,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh-3042
+  m_Name: pb_Mesh-1322
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -1569,7 +1575,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2039758216
 Transform:
   m_ObjectHideFlags: 0
@@ -1765,7 +1771,7 @@ PrefabInstance:
     - target: {fileID: 4367491568582559091, guid: 14b23f5fa098a87478de8cccef28774d,
         type: 3}
       propertyPath: temporalFreq
-      value: 0.25
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4367491568582559091, guid: 14b23f5fa098a87478de8cccef28774d,
         type: 3}

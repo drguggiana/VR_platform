@@ -138,7 +138,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5320673
 Transform:
   m_ObjectHideFlags: 0
@@ -927,38 +927,7 @@ PrefabInstance:
       propertyPath: targetController
       value: 
       objectReference: {fileID: 0}
-    - target: {fileID: 2744867212166842625, guid: e45037862af4ac641a9a461284ec0001,
-        type: 3}
-      propertyPath: osc
-      value: 
-      objectReference: {fileID: 1005790155}
-    - target: {fileID: 2744867212166842625, guid: e45037862af4ac641a9a461284ec0001,
-        type: 3}
-      propertyPath: Cricket
-      value: 
-      objectReference: {fileID: 5320672}
-    - target: {fileID: 2744867212166842625, guid: e45037862af4ac641a9a461284ec0001,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2744867212166842625, guid: e45037862af4ac641a9a461284ec0001,
-        type: 3}
-      propertyPath: RigidBodyId
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 2744867212166842625, guid: e45037862af4ac641a9a461284ec0001,
-        type: 3}
-      propertyPath: StreamingClient
-      value: 
-      objectReference: {fileID: 303620641}
-    - target: {fileID: 2744867212166842625, guid: e45037862af4ac641a9a461284ec0001,
-        type: 3}
-      propertyPath: tracking_square
-      value: 
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 2744867212166842625, guid: e45037862af4ac641a9a461284ec0001, type: 3}
+    m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e45037862af4ac641a9a461284ec0001, type: 3}
 --- !u!1001 &684188788
 PrefabInstance:
@@ -1816,7 +1785,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1174232804}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7ef8584e980284f4cb8cc3f7a4b0e5a2, type: 3}
   m_Name: 
@@ -1832,16 +1801,16 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1174232804}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3a0ac0bc88316424d8f0d381a3fa8fa6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   StreamingClient: {fileID: 303620641}
   RigidBodyId: 4
+  trackingSquare: {fileID: 1391598103}
   Mouse: {fileID: 1174232804}
   realCricket: {fileID: 5320672}
-  trackingSquare: {fileID: 0}
 --- !u!4 &1193573230 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4789960278319098, guid: e45037862af4ac641a9a461284ec0001,
