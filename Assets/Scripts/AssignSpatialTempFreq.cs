@@ -14,6 +14,7 @@ public class AssignSpatialTempFreq : MonoBehaviour
 
     public surfaces surfaceType;
     public Transform referencePoint;
+    public float orientation;
     public float spatialFreq;     // units: cycles/deg
     public float temporalFreq;    // units: cycles/sec
     public float uvOffset = 0;
@@ -73,6 +74,9 @@ public class AssignSpatialTempFreq : MonoBehaviour
         
         // Assign the number of cycles
         stripesMaterial.SetFloat("_Cycles", _Cycles);
+        
+        // Assign the orientation of the stripes
+        stripesMaterial.SetFloat("_Orientation", orientation);
     }
     
     float calculateCyclesOnSphere(float sf, float radius)

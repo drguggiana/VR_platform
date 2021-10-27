@@ -7,6 +7,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
     public GameObject gaborStim;
     private AssignSpatialTempFreq _assignSpatialTempFreq;
     private AssignGaussianAlpha _assignGaussianAlpha;
+    private float _orientation = 45.0f;
     private float _spatialFreq = 0.02222f;
     private float _temporalFreq = 0.5f;
 
@@ -102,7 +103,8 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // Assign trial number for recording
         trialNum = _trialNum;
         
-        // Assign the spatial and temporal frequencies and update the stripes material
+        // Assign the orientation, spatial and temporal frequencies and update the stripes material
+        _assignSpatialTempFreq.orientation = _orientation;
         _assignSpatialTempFreq.spatialFreq = _spatialFreq;
         _assignSpatialTempFreq.temporalFreq = _temporalFreq;
         _assignSpatialTempFreq.uvOffset = 0;
@@ -123,7 +125,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // Close the Alpha mask
         _assignGaussianAlpha.SetInvert(1);
         
-        // Reset the spatial and temporal frequencies and update the stripes material
+        // Reset the temporal frequencies and update the stripes material
         _assignSpatialTempFreq.temporalFreq = 0.0f;
         _assignSpatialTempFreq.uvOffset = 0;
         _assignSpatialTempFreq.SetParameters();
@@ -153,8 +155,9 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
     {
         // Parse the values for trial structure setup
         _trialNum = int.Parse(message.values[0].ToString());
-        _temporalFreq = float.Parse(message.values[1].ToString());
-        _spatialFreq = float.Parse(message.values[2].ToString());
+        _orientation = float.Parse(message.values[1].ToString());
+        _temporalFreq = float.Parse(message.values[2].ToString());
+        _spatialFreq = float.Parse(message.values[3].ToString());
         
         // Send handshake message to Python process to confirm receipt of parameters
         OscMessage handshake = new OscMessage
