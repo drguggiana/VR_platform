@@ -17,7 +17,7 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/AR/AR_cricketcamo.unity
     guid: f90b3da769c5edb4484232dd53825e80
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/Demos/AR_Demo.unity
     guid: 60c8fe3889ee55541bd3176b9943030c
   - enabled: 0

@@ -1790,10 +1790,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ef8584e980284f4cb8cc3f7a4b0e5a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  StreamingClient: {fileID: 303620641}
-  RigidBodyId: 4
+  streamingClient: {fileID: 303620641}
+  rigidBodyId: 4
   trackingSquare: {fileID: 1391598103}
-  Mouse: {fileID: 1174232804}
+  mouse: {fileID: 1174232804}
 --- !u!114 &1174232807
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1806,10 +1806,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a0ac0bc88316424d8f0d381a3fa8fa6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  StreamingClient: {fileID: 303620641}
-  RigidBodyId: 4
+  streamingClient: {fileID: 303620641}
+  rigidBodyId: 4
   trackingSquare: {fileID: 1391598103}
-  Mouse: {fileID: 1174232804}
+  mouse: {fileID: 1174232804}
   realCricket: {fileID: 5320672}
 --- !u!4 &1193573230 stripped
 Transform:

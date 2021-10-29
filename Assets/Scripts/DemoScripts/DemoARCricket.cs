@@ -15,14 +15,20 @@ public class DemoARCricket : DemoRecorderBase
     private Vector3 realCricketPosition;
     
     // Start is called before the first frame update
-    protected override void Start()
-    {
-        base.Start();
-    }
-
+    // void Start()
+    // {
+    //    // Notice here that Start is called from the DemoRecorderBase class, and since we do not need to modify it in 
+    //    // any way, it doesn't even need to be explicitly called in this class
+    //     base.Start();
+    // }
+    
+    
     // Update is called once per frame
     protected override void Update()
     {
+        // Notice here that we are doing more with the Update function than is present in the DemoRecorderBase class, 
+        // therefore we must override the DemoRecorderBase.Update() function, call it explicitly to update the tracking 
+        // square and get the current mouse position, but we also add functionality to track a cricket in the scene.
         base.Update();
         realCricketPosition = GetRealCricketPosition();
         realCricket.transform.localPosition = realCricketPosition;
@@ -32,7 +38,7 @@ public class DemoARCricket : DemoRecorderBase
     {
         Vector3 outputPosition;
         List<Vector3> nonlabeledMarkers = new List<Vector3>();
-        List<OptitrackMarkerState> labeledMarkers = StreamingClient.GetLatestMarkerStates();
+        List<OptitrackMarkerState> labeledMarkers = streamingClient.GetLatestMarkerStates();
         
         foreach (OptitrackMarkerState marker in labeledMarkers)
         {

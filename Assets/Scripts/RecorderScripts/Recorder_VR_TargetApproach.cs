@@ -49,7 +49,7 @@ public class Recorder_VR_TargetApproach : RecorderBase {
     }
 
     // Update is called once per frame
-    protected override void Update() {
+    void Update() {
         // For debugging only
         #if (UNITY_EDITOR)
             _counter++;
@@ -80,8 +80,10 @@ public class Recorder_VR_TargetApproach : RecorderBase {
             }
         }
         
-        // -- Run the basic frame update function -- //
-        base.Update();
+        // Get mouse position from OptiTrack and update the tracking square color
+        // Note that these functions are defined in the RecorderBase class
+        SetTrackingSqaure();
+        GetMousePosition();
         
         // --- Handle mouse and target data --- //
         

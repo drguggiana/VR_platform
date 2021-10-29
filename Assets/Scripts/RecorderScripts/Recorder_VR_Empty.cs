@@ -8,24 +8,22 @@ using UnityEngine;
  time and color of the tracking square.
 */
 
-[ExecuteInEditMode]
+//[ExecuteInEditMode]
 public class Recorder_VR_Empty : RecorderBase
 {
-
     // Use this for initialization
     protected override void Start()
     {
        base.Start();
-
        // Write header to file. This function is inherited from the RecorderBase class
-       AssembleHeader(1, 0, false);
+       AssembleHeader(0, 0, false);
     }
 
     // Update is called once per frame
     protected override void Update()
     {
-        // Call the base update function to get mouse position from OptiTrack and
-        // update the tracking square color
+        // Get mouse position from OptiTrack and update the tracking square color
+        // Note that these functions are defined in the RecorderBase class
         base.Update();
         
         // --- Handle mouse data --- //
@@ -37,5 +35,6 @@ public class Recorder_VR_Empty : RecorderBase
         string[] allData = { TimeStamp.ToString(), mouseString, ColorFactor.ToString() };
         Writer.WriteLine(string.Join(", ", allData));
     }
+    
 
 }

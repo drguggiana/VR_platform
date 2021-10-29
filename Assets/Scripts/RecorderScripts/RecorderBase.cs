@@ -14,7 +14,7 @@ using UnityEngine;
  the OSC communication and listening for the kill signal. 
 */
 
-[ExecuteInEditMode]
+//[ExecuteInEditMode]
 public class RecorderBase : MonoBehaviour
 {
     // Streaming client
@@ -27,6 +27,7 @@ public class RecorderBase : MonoBehaviour
     // Variables for tracking square
     public GameObject trackingSquare;
     private Material _trackingSqaureMaterial;
+    private Color _newColor;
     protected float ColorFactor = 0.0f;
 
     // Variables for mouse position
@@ -58,7 +59,7 @@ public class RecorderBase : MonoBehaviour
         osc.SetAddressHandler("/Close", OnReceiveStop);
 
         // Get the tracking square material
-        _trackingSqaureMaterial = trackingSquare.GetComponent<Renderer>().sharedMaterial;
+        _trackingSqaureMaterial = trackingSquare.GetComponent<Renderer>().material;
         
         // Set the writer
         Paths.CheckFileExistence(Paths.recording_path);
@@ -72,21 +73,18 @@ public class RecorderBase : MonoBehaviour
     // Update is called once per frame
     protected virtual void Update()
     {
-        // The tracking square needs to be updated on every frame
         SetTrackingSqaure();
-        
-        // There is always a mouse, so get the mouse position
         GetMousePosition();
     }
     
     // Changes the tracking square color on each frame
-    void SetTrackingSqaure()
+    protected void SetTrackingSqaure()
     {
         // create the color for the square
-        Color newColor = new Color(ColorFactor, ColorFactor, ColorFactor, 1f);
+        _newColor = new Color(ColorFactor, ColorFactor, ColorFactor, 1f);
         
         // put it on the square   
-        _trackingSqaureMaterial.color = newColor;
+        _trackingSqaureMaterial.SetColor("_Color", _newColor);
         
         // Define the color for the next iteration (switch it)
         if (ColorFactor > 0.0f)
@@ -99,7 +97,7 @@ public class RecorderBase : MonoBehaviour
         }
     }
     
-    void GetMousePosition()
+    protected void GetMousePosition()
     {
         OptitrackRigidBodyState rbState = streamingClient.GetLatestRigidBodyState(rigidBodyID);
         if (rbState != null)

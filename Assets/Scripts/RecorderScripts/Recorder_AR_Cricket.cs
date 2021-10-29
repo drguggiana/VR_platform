@@ -37,8 +37,10 @@ public class Recorder_AR_Cricket : RecorderBase
     // Update is called once per frame
     protected override void Update()
     {
-        // Call the base update function to get mouse position from OptiTrack and
-        // update the tracking square color
+        // Get mouse position from OptiTrack and update the tracking square color
+        // Note that these functions are defined in the RecorderBase class
+        // SetTrackingSqaure();
+        // GetMousePosition();
         base.Update();
         
         // --- Handle mouse, real cricket, and/or VR Cricket data --- //

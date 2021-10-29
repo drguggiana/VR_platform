@@ -1,27 +1,25 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using System;
 
 public class DemoRecorderBase : MonoBehaviour
 {
     // Streaming client
-    public OptitrackStreamingClient StreamingClient;
-    public Int32 RigidBodyId;
+    public OptitrackStreamingClient streamingClient;
+    public Int32 rigidBodyId;
     
     // Variables for tracking square
     public GameObject trackingSquare;
-    private Material trackingSqaureMaterial;
-    private float color_factor = 0.0f;
+    private Material _trackingSqaureMaterial;
+    private float _colorFactor = 0.0f;
 
     // Variables for mouse position
-    public GameObject Mouse;
-    private Vector3 mousePosition;
-    private Vector3 mouseOrientation;
+    public GameObject mouse;
+    private Vector3 _mousePosition;
+    private Vector3 _mouseOrientation;
     
     // Timer
-    private OptitrackHiResTimer.Timestamp reference;
-    private float timeStamp;
+    private OptitrackHiResTimer.Timestamp _reference;
+    private float _timeStamp;
     
     
     // Start is called before the first frame update
@@ -31,14 +29,14 @@ public class DemoRecorderBase : MonoBehaviour
         Screen.fullScreen = true;
 
         // Get the reference timer
-        reference = OptitrackHiResTimer.Now();
+        _reference = OptitrackHiResTimer.Now();
 
         // Set up the camera (so it doesn't clip objects too close to the mouse)
         Camera cam = GetComponentInChildren<Camera>();
         cam.nearClipPlane = 0.000001f;
 
         // Get the tracking square material
-        trackingSqaureMaterial = trackingSquare.GetComponent<Renderer>().sharedMaterial;
+        _trackingSqaureMaterial = trackingSquare.GetComponent<Renderer>().sharedMaterial;
 
     }
 
@@ -52,40 +50,40 @@ public class DemoRecorderBase : MonoBehaviour
     public void SetTrackingSqaure()
     {
         // create the color for the square
-        Color new_color = new Color(color_factor, color_factor, color_factor, 1f);
+        Color new_color = new Color(_colorFactor, _colorFactor, _colorFactor, 1f);
         // put it on the square 
-        trackingSqaureMaterial.SetColor("_Color", new_color);
+        _trackingSqaureMaterial.SetColor("_Color", new_color);
         // Define the color for the next iteration (switch it)
-        if (color_factor > 0.0f)
+        if (_colorFactor > 0.0f)
         {
-            color_factor = 0.0f;
+            _colorFactor = 0.0f;
         }
         else
         {
-            color_factor = 1.0f;
+            _colorFactor = 1.0f;
         }
     }
     
     public void GetMousePosition()
     {
-        OptitrackRigidBodyState rbState = StreamingClient.GetLatestRigidBodyState(RigidBodyId);
+        OptitrackRigidBodyState rbState = streamingClient.GetLatestRigidBodyState(rigidBodyId);
         if (rbState != null)
         {
             // get the position of the mouse Rigid Body
-            mousePosition = rbState.Pose.Position;
+            _mousePosition = rbState.Pose.Position;
             // change the transform position of the game object
-            this.transform.localPosition = mousePosition;
+            this.transform.localPosition = _mousePosition;
             // also change its rotation
             this.transform.localRotation = rbState.Pose.Orientation;
             // turn the angles into Euler (for later printing)
-            mouseOrientation = this.transform.eulerAngles;
+            _mouseOrientation = this.transform.eulerAngles;
             // get the timestamp 
-            timeStamp = rbState.DeliveryTimestamp.SecondsSince(reference);
+            _timeStamp = rbState.DeliveryTimestamp.SecondsSince(_reference);
         }
         else
         {
-            mousePosition = Mouse.transform.position;
-            mouseOrientation = Mouse.transform.rotation.eulerAngles;
+            _mousePosition = mouse.transform.position;
+            _mouseOrientation = mouse.transform.rotation.eulerAngles;
         }
     }
 }
