@@ -24,22 +24,25 @@ public class Recorder_VR_TargetApproach : RecorderBase {
 
     // Variables for properties of the target that are manipulated
     private int _trialNum = 0;
-    private int shape;
-    private Vector3 scale;    
-    private Vector4 screen_color;
-    private Vector4 target_color;
-    private float speed;
-    private float acceleration;
-    private int trajectory;
+    private int _shape;
+    private Vector3 _scale;    
+    private Vector4 _screenColor;
+    private Vector4 _targetColor;
+    private float _speed;
+    private float _acceleration;
+    private int _trajectory;
     
     // For debugging
     private int _counter = 0;
 
 
     // Use this for initialization
-    protected override void Start () {
-        
+    protected override void Start () 
+    {
+        // -- Inherit setup from base class
         base.Start();
+
+        // -------------------------------------------
         
         // set the OSC communication
         osc.SetAddressHandler("/TrialStart", OnReceiveTrialStart);
@@ -49,7 +52,7 @@ public class Recorder_VR_TargetApproach : RecorderBase {
     }
 
     // Update is called once per frame
-    void Update() {
+    protected override void Update() {
         // For debugging only
         #if (UNITY_EDITOR)
             _counter++;
@@ -82,8 +85,9 @@ public class Recorder_VR_TargetApproach : RecorderBase {
         
         // Get mouse position from OptiTrack and update the tracking square color
         // Note that these functions are defined in the RecorderBase class
-        SetTrackingSqaure();
-        GetMousePosition();
+        // SetTrackingSqaure();
+        // GetMousePosition();
+        base.Update();
         
         // --- Handle mouse and target data --- //
         
@@ -131,22 +135,22 @@ public class Recorder_VR_TargetApproach : RecorderBase {
     {
         // Parse the values for trial setup
         _trialNum = int.Parse(message.values[0].ToString());
-        shape = int.Parse(message.values[1].ToString());          // This is an integer representing the index of the child object of Target obj in scene
-        scale = HelperFunctions.StringToVector3(message.values[2].ToString());    // Vector3 defining the scale of the target
-        screen_color = HelperFunctions.StringToVector4(message.values[3].ToString());    // Vector4 defining screen color in RGBA
-        target_color = HelperFunctions.StringToVector4(message.values[4].ToString());    // Vector4 defining target color in RGBA
-        speed = float.Parse(message.values[5].ToString());    // Float for target speed
-        acceleration = float.Parse(message.values[6].ToString());    // Float for target acceleration
-        trajectory = int.Parse(message.values[7].ToString());    // Int for trajectory type
+        _shape = int.Parse(message.values[1].ToString());          // This is an integer representing the index of the child object of Target obj in scene
+        _scale = HelperFunctions.StringToVector3(message.values[2].ToString());    // Vector3 defining the scale of the target
+        _screenColor = HelperFunctions.StringToVector4(message.values[3].ToString());    // Vector4 defining screen color in RGBA
+        _targetColor = HelperFunctions.StringToVector4(message.values[4].ToString());    // Vector4 defining target color in RGBA
+        _speed = float.Parse(message.values[5].ToString());    // Float for target speed
+        _acceleration = float.Parse(message.values[6].ToString());    // Float for target acceleration
+        _trajectory = int.Parse(message.values[7].ToString());    // Int for trajectory type
 
         // Set values in TrialHandler for the next trial
-        targetController.targetIndex = shape;
-        targetController.scale = scale;
-        targetController.screenColor = screen_color;
-        targetController.targetColor = target_color;
-        targetController.speed = speed;
-        targetController.acceleration = acceleration;
-        targetController.trajectory = trajectory;
+        targetController.targetIndex = _shape;
+        targetController.scale = _scale;
+        targetController.screenColor = _screenColor;
+        targetController.targetColor = _targetColor;
+        targetController.speed = _speed;
+        targetController.acceleration = _acceleration;
+        targetController.trajectory = _trajectory;
 
         // Send handshake message to Python process to confirm receipt of parameters
         OscMessage handshake = new OscMessage

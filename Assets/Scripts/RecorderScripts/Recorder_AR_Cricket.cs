@@ -3,62 +3,71 @@ using UnityEngine;
 using System.Linq;
 using System;
 
+/*
+ This class is a child of the RecorderBase class. It inherits most of its functionality from there.
+ See RecorderBase for detailed explanation of what goes on under the hood.
+*/
+
+
 [ExecuteInEditMode]
 public class Recorder_AR_Cricket : RecorderBase
 {
 
     // Variables for real cricket position
-    public GameObject realCricket;
-    private Vector3 realCricketPosition;
+    private GameObject _realCricket;
+    private Vector3 _realCricketPosition;
     
     // Variables for virtual cricket transforms and states
-    private GameObject[] vrCricketObjs;
-    GameObject vrCricketInstanceGameObject;
-    private Vector3 vrCricketPosition;
-    private Vector3 vrCricketOrientation;
-    private int state;
-    private float speed;
-    private int encounter;
-    private int motion;
+    private GameObject[] _vrCricketObjects;
+    // GameObject _vrCricketInstanceGameObject;
+    private Vector3 _vrCricketPosition;
+    private Vector3 _vrCricketOrientation;
+    private int _state;
+    private float _speed;
+    private int _encounter;
+    private int _motion;
 
     // Use this for initialization
     protected override void Start()
     {
+        // -- Inherit setup from base class
         base.Start();
 
-        // Get cricket object array sorted by name/number
-        vrCricketObjs = HelperFunctions.FindObsWithTag("vrCricket");
+        // -------------------------------------------
+
+        // Get VR cricket object array sorted by name/number
+        _vrCricketObjects = HelperFunctions.FindObsWithTag("vrCricket");
+        
+        // Get the real cricket object - there will only be one per scene. sp 
+        _realCricket = HelperFunctions.FindObsWithTag("Cricket")[0];
         
         // Write header to file
         // There is always at least one real cricket in this scene
-        AssembleHeader(1, vrCricketObjs.Length, false);
+        AssembleHeader(1, _vrCricketObjects.Length, false);
     }
 
     // Update is called once per frame
     protected override void Update()
     {
-        // Get mouse position from OptiTrack and update the tracking square color
+        // Update the tracking square color and get mouse position from OptiTrack
         // Note that these functions are defined in the RecorderBase class
         // SetTrackingSqaure();
         // GetMousePosition();
         base.Update();
         
         // --- Handle mouse, real cricket, and/or VR Cricket data --- //
-        
         object[] mouseData = { MousePosition.x, MousePosition.y, MousePosition.z, 
                                MouseOrientation.x, MouseOrientation.y, MouseOrientation.z };
         string mouseString = string.Join(", ", mouseData);
         
-        realCricketPosition = GetRealCricketPosition();
-        realCricket.transform.localPosition = realCricketPosition;
-        object[] realCricketData = { realCricketPosition.x, realCricketPosition.y, realCricketPosition.z };
+        _realCricketPosition = GetRealCricketPosition();
+        _realCricket.transform.localPosition = _realCricketPosition;
+        object[] realCricketData = { _realCricketPosition.x, _realCricketPosition.y, _realCricketPosition.z };
         string realCricketString = string.Join(", ", realCricketData);
         
         string vrCricketString = GetVRCricketData();
 
         // --- Data Saving --- //
-
-        // Write the mouse and VR cricket info
         string[] allData = { TimeStamp.ToString(), mouseString, realCricketString, vrCricketString, ColorFactor.ToString() };
         allData = allData.Where(x => !string.IsNullOrEmpty(x)).ToArray();
         Writer.WriteLine(string.Join(", ", allData));
@@ -97,7 +106,7 @@ public class Recorder_AR_Cricket : RecorderBase
 
             for (int i = 0; i < nonlabeledMarkers.Count; i++)
             {
-                distances[i] = Math.Abs(Vector3.Distance(nonlabeledMarkers[i], realCricketPosition));
+                distances[i] = Math.Abs(Vector3.Distance(nonlabeledMarkers[i], _realCricketPosition));
             }
 
             int minIndex = Array.IndexOf(distances, distances.Min());
@@ -106,7 +115,7 @@ public class Recorder_AR_Cricket : RecorderBase
         else
         {
             // If there is no point found, reuse the current position
-            outputPosition = realCricket.transform.localPosition;
+            outputPosition = _realCricket.transform.localPosition;
         }
         return outputPosition;
     }
@@ -115,23 +124,23 @@ public class Recorder_AR_Cricket : RecorderBase
     {
         string vrCricketString = "";
         
-        foreach (GameObject vrCricketObj in vrCricketObjs)
+        foreach (GameObject vrCricketObj in _vrCricketObjects)
         {
             // Get the VR cricket position and orientation
-            vrCricketPosition = vrCricketObj.transform.position;
-            vrCricketOrientation = vrCricketObj.transform.rotation.eulerAngles;
+            _vrCricketPosition = vrCricketObj.transform.position;
+            _vrCricketOrientation = vrCricketObj.transform.rotation.eulerAngles;
 
             // Get the VR cricket speed and current motion state
-            speed = vrCricketObj.GetComponent<Animator>().GetFloat("speed"); ;
-            state = vrCricketObj.GetComponent<Animator>().GetInteger("state_selector");
-            motion = vrCricketObj.GetComponent<Animator>().GetInteger("motion_selector");
-            encounter = vrCricketObj.GetComponent<Animator>().GetInteger("in_encounter");
+            _speed = vrCricketObj.GetComponent<Animator>().GetFloat("speed"); ;
+            _state = vrCricketObj.GetComponent<Animator>().GetInteger("state_selector");
+            _motion = vrCricketObj.GetComponent<Animator>().GetInteger("motion_selector");
+            _encounter = vrCricketObj.GetComponent<Animator>().GetInteger("in_encounter");
 
             // Concatenate strings for this cricket object, and add to all cricket string
             object[] cricket_data = {
-                vrCricketPosition.x, vrCricketPosition.y, vrCricketPosition.z,
-                vrCricketOrientation.x, vrCricketOrientation.y, vrCricketOrientation.z,
-                speed, state, motion, encounter 
+                _vrCricketPosition.x, _vrCricketPosition.y, _vrCricketPosition.z,
+                _vrCricketOrientation.x, _vrCricketOrientation.y, _vrCricketOrientation.z,
+                _speed, _state, _motion, _encounter 
             };
 
             string thisVRCricket = string.Join(", ", cricket_data);

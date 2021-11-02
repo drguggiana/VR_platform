@@ -1,6 +1,15 @@
 using System.Linq;
 using UnityEngine;
 
+/*
+ This class is a child of the RecorderBase class. It inherits most of its functionality from there.
+ See RecorderBase for detailed explanation of what goes on under the hood.
+ 
+ This class is responsible for sending and receiving information about the trial parameters from
+ Python, handling trial timing, logging the mouse position from the Optitrack system, and logging 
+ the current time and color of the tracking square.
+*/
+
 //[ExecuteInEditMode]
 public class Recorder_VR_SpatioTemporalTuning : RecorderBase
 {
@@ -22,7 +31,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
     private float _interStimulusInterval = 5;     // In seconds
 
     // Used for debugging
-    private int _counter = 0;
+    // private int _counter = 0;
     
     // Start is called before the first frame update
     protected override void Start()

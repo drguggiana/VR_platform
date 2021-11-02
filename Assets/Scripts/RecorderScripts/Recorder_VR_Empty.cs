@@ -14,7 +14,10 @@ public class Recorder_VR_Empty : RecorderBase
     // Use this for initialization
     protected override void Start()
     {
-       base.Start();
+        // -- Inherit setup from base class
+        base.Start();
+
+        // -------------------------------------------
        // Write header to file. This function is inherited from the RecorderBase class
        AssembleHeader(0, 0, false);
     }
