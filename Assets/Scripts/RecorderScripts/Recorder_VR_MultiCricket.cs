@@ -12,7 +12,7 @@ public class Recorder_VR_MultiCricket : RecorderBase
 {
     // Variables for virtual cricket transforms and states
     private GameObject[] _vrCricketObjects;
-    // GameObject vrCricketInstanceGameObject;
+    // GameObject _vrCricketInstanceGameObject;
     private Vector3 _vrCricketPosition;
     private Vector3 _vrCricketOrientation;
     private int _state;
@@ -27,7 +27,6 @@ public class Recorder_VR_MultiCricket : RecorderBase
         base.Start();
 
         // -------------------------------------------
-        
         // Get cricket object array sorted by name/number
         _vrCricketObjects = HelperFunctions.FindObsWithTag("vrCricket");
 

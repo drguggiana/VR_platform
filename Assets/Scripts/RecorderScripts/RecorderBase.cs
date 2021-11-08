@@ -26,9 +26,16 @@ public class RecorderBase : MonoBehaviour
     
     // Variables for tracking square
     public GameObject trackingSquare;
-    private Material _trackingSqaureMaterial;
+    private Material _trackingSquareMaterial;
     private Color _newColor;
     protected float ColorFactor = 0.0f;
+    
+    // Variables to handle the startup sequence
+    private float _startupTimerReference = 0f;
+    private float _startupSwitchTimer = 0f;
+    private float _switchDuration = 0.5f;
+    protected bool InSession = false;
+    protected bool InStartup = true;
 
     // Variables for mouse position
     public GameObject mouse;
@@ -56,10 +63,13 @@ public class RecorderBase : MonoBehaviour
         cam.nearClipPlane = 0.000001f;
         
         // set the OSC communication
+        osc.SetAddressHandler("/SetupExperiment", OnReceiveExpSetup);
+        osc.SetAddressHandler("/SessionStart", OnReceiveSessionStart);
         osc.SetAddressHandler("/Close", OnReceiveStop);
 
-        // Get the tracking square material
-        _trackingSqaureMaterial = trackingSquare.GetComponent<Renderer>().material;
+        // Get the tracking square material and set it to black to start
+        _trackingSquareMaterial = trackingSquare.GetComponent<Renderer>().material;
+        SetTrackingSquare();
         
         // Set the writer
         Paths.CheckFileExistence(Paths.recording_path);
@@ -67,24 +77,39 @@ public class RecorderBase : MonoBehaviour
 
         // Write initial parameters and header to file
         LogSceneParams();
-
+        
     }
 
     // Update is called once per frame
     protected virtual void Update()
-    {
-        SetTrackingSqaure();
-        GetMousePosition();
+    {        
+        // For debugging only
+        // #if (UNITY_EDITOR)
+        //
+        //     if ((_counter % 240 == 0) & !inSession)
+        //     {
+        //         inSession = true;
+        //     }
+        // #endif
+        
+        if (InSession)
+        {
+            if (InStartup) { TrackingSquareStartup(); }
+            else { SetTrackingSquare(); }
+            
+            GetMousePosition();
+        }       
+        
     }
     
     // Changes the tracking square color on each frame
-    protected void SetTrackingSqaure()
+    private void SetTrackingSquare()
     {
         // create the color for the square
         _newColor = new Color(ColorFactor, ColorFactor, ColorFactor, 1f);
         
         // put it on the square   
-        _trackingSqaureMaterial.SetColor("_Color", _newColor);
+        _trackingSquareMaterial.SetColor("_Color", _newColor);
         
         // Define the color for the next iteration (switch it)
         if (ColorFactor > 0.0f)
@@ -96,8 +121,38 @@ public class RecorderBase : MonoBehaviour
             ColorFactor = 1.0f;
         }
     }
+
+    // Creates a 1Hz signal for 2 seconds with the tracking square to signal the start of the experiment
+    private void TrackingSquareStartup()
+    {
+        // Set the square to white with the first frame
+        if (_startupTimerReference == 0.0f)
+        {
+            SetTrackingSquare();
+        }
+        
+        // Increment the clocks
+        _startupTimerReference += Time.deltaTime;
+        _startupSwitchTimer += Time.deltaTime;
+        
+        // If we're in the startup sequence, evaluate if the square needs to change
+        if (_startupTimerReference <= 2.0f) 
+        {
+            if (_startupSwitchTimer >= _switchDuration)
+            {
+                SetTrackingSquare();
+                _startupSwitchTimer = 0f;
+            }
+        }
+        else
+        {
+            InStartup = false;
+            SetTrackingSquare();
+        }
+    }
     
-    protected void GetMousePosition()
+    // Gets the mouse position from Motive on each frame and updates the timestamp in Motive time
+    private void GetMousePosition()
     {
         OptitrackRigidBodyState rbState = streamingClient.GetLatestRigidBodyState(rigidBodyID);
         if (rbState != null)
@@ -210,6 +265,23 @@ public class RecorderBase : MonoBehaviour
         // Remove any empty strings (if there are no real or vr crickets) and write the line to the file
         header = header.Where(x => !string.IsNullOrEmpty(x)).ToArray();
         Writer.WriteLine(string.Join(", ", header));
+    }
+
+    // --- Handle OSC Communication --- //
+    protected virtual void OnReceiveExpSetup(OscMessage message)
+    {
+        // Send message to Python process to confirm end of setup and that the trials can start
+        OscMessage readyMessage = new OscMessage
+        {
+            address = "/UnityReady"
+        };
+        readyMessage.values.Add(0);
+        osc.Send(readyMessage);
+    }
+
+    void OnReceiveSessionStart(OscMessage message)
+    {
+        InSession = true;
     }
     
     void OnReceiveStop(OscMessage message)

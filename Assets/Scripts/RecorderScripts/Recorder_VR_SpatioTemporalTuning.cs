@@ -22,16 +22,13 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
     private float _temporalFreq = 0.5f;
 
     // Private variables for the trial structure
-    private float _trialTimer = 0;
+    private float _trialTimer = 0f;
     private int _trialNumBuffer = 0;    // This is a variable that temporarily holds the trial number
     private int _trialNum = 0;
     private bool _inTrial = false;
-    private bool _inSession = false;
     private float _trialDuration = 5;         // In seconds
     private float _interStimulusInterval = 5;     // In seconds
-
-    // Used for debugging
-    // private int _counter = 0;
+    
     
     // Start is called before the first frame update
     protected override void Start()
@@ -40,10 +37,11 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         base.Start();
         
         // -------------------------------------------
-        
         // -- These are specific to the particular scene
+        
+        // Note that OnReceiveExpSetup is overridden from the base class
         osc.SetAddressHandler("/SetupExperiment", OnReceiveExpSetup);
-        osc.SetAddressHandler("/TrialSetup", OnReceiveTrialSetup);
+        osc.SetAddressHandler("/SetupTrial", OnReceiveTrialSetup);
 
         // Get the scripts for the gabor assignments
         _assignSpatialTempFreq = gaborStim.GetComponent<AssignSpatialTempFreq>();
@@ -57,19 +55,8 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
     // Update is called once per frame
     protected override void Update()
     {
-        // For debugging only
-        // #if (UNITY_EDITOR)
-        //
-        //     if ((_counter % 240 == 0) & !inSession)
-        //     {
-        //         inSession = true;
-        //     }
-        // #endif
-        //
-        
-        
         // --- Handle trial structure --- //
-        if (_inSession)
+        if (InSession & !InStartup)
         {
             _trialTimer += Time.deltaTime;
             
@@ -91,8 +78,6 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         
         // Get mouse position from OptiTrack and update the tracking square color
         // Note that these functions are defined in the RecorderBase class
-        // SetTrackingSqaure();
-        // GetMousePosition();
         base.Update();
         
         // --- Handle mouse data --- //
@@ -154,14 +139,13 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
     }
     
     // --- Handle OSC Communication --- //
-    void OnReceiveExpSetup(OscMessage message)
+    protected override void OnReceiveExpSetup(OscMessage message)
     {
         // Parse the values for trial structure setup
         _trialDuration = float.Parse(message.values[0].ToString());
         _interStimulusInterval = float.Parse(message.values[1].ToString());
         
-        // Set boolean that we are now in the experimental session
-        _inSession = true;
+        base.OnReceiveExpSetup(message);
     }
     
     void OnReceiveTrialSetup(OscMessage message)
@@ -175,13 +159,13 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // Send handshake message to Python process to confirm receipt of parameters
         OscMessage handshake = new OscMessage
         {
-            address = "/Handshake"
+            address = "/TrialReceived"
         };
         handshake.values.Add(_trialNumBuffer);
         osc.Send(handshake);
     }
     
-    void SendTrialEnd ()
+    void SendTrialEnd()
     {
         // Send trial end message to Python process
         OscMessage message = new OscMessage

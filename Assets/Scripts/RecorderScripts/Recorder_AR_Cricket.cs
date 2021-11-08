@@ -14,6 +14,7 @@ public class Recorder_AR_Cricket : RecorderBase
 {
 
     // Variables for real cricket position
+    private GameObject[] _realCricketObjects;
     private GameObject _realCricket;
     private Vector3 _realCricketPosition;
     
@@ -34,16 +35,16 @@ public class Recorder_AR_Cricket : RecorderBase
         base.Start();
 
         // -------------------------------------------
-
         // Get VR cricket object array sorted by name/number
         _vrCricketObjects = HelperFunctions.FindObsWithTag("vrCricket");
         
-        // Get the real cricket object - there will only be one per scene. sp 
-        _realCricket = HelperFunctions.FindObsWithTag("Cricket")[0];
+        // Get the real cricket object - there will only be one per scene
+        _realCricketObjects = HelperFunctions.FindObsWithTag("Cricket");
+        _realCricket = _realCricketObjects[0];
         
         // Write header to file
         // There is always at least one real cricket in this scene
-        AssembleHeader(1, _vrCricketObjects.Length, false);
+        AssembleHeader(_realCricketObjects.Length, _vrCricketObjects.Length, false);
     }
 
     // Update is called once per frame

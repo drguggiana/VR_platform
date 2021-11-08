@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 /*
@@ -18,7 +19,7 @@ public class Recorder_VR_Empty : RecorderBase
         base.Start();
 
         // -------------------------------------------
-       // Write header to file. This function is inherited from the RecorderBase class
+        // Write header to file. This function is inherited from the RecorderBase class
        AssembleHeader(0, 0, false);
     }
 
@@ -36,6 +37,7 @@ public class Recorder_VR_Empty : RecorderBase
 
         // --- Data Saving --- //
         string[] allData = { TimeStamp.ToString(), mouseString, ColorFactor.ToString() };
+        allData = allData.Where(x => !string.IsNullOrEmpty(x)).ToArray();
         Writer.WriteLine(string.Join(", ", allData));
     }
     

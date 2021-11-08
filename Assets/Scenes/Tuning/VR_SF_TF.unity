@@ -248,7 +248,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 303620639}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a331805347588fe4a8161c8875d24396, type: 3}
   m_Name: 
@@ -266,7 +266,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh22660
+  m_Name: pb_Mesh21754
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -430,7 +430,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh-2222
+  m_Name: pb_Mesh-1302
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -884,42 +884,6 @@ PrefabInstance:
       propertyPath: m_Radius
       value: 0.6
       objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: osc
-      value: 
-      objectReference: {fileID: 1005790155}
-    - target: {fileID: 0}
-      propertyPath: Mouse
-      value: 
-      objectReference: {fileID: 1174232804}
-    - target: {fileID: 0}
-      propertyPath: Cricket
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: RigidBodyId
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: realCricket
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: trackingSquare
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 0}
-      propertyPath: StreamingClient
-      value: 
-      objectReference: {fileID: 303620641}
-    - target: {fileID: 0}
-      propertyPath: tracking_square
-      value: 
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e45037862af4ac641a9a461284ec0001, type: 3}
 --- !u!4 &646342796 stripped
@@ -1153,7 +1117,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh-2234
+  m_Name: pb_Mesh-1314
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -1439,6 +1403,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_RootOrder
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4367491568582559080, guid: 14b23f5fa098a87478de8cccef28774d,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4367491568582559080, guid: 14b23f5fa098a87478de8cccef28774d,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4367491568582559080, guid: 14b23f5fa098a87478de8cccef28774d,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 4367491568582559080, guid: 14b23f5fa098a87478de8cccef28774d,
         type: 3}

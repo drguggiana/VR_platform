@@ -66,22 +66,26 @@ public class Recorder_VR_TargetApproach : RecorderBase {
         #endif
 
         // --- If in trial, check if the trial is done yet --- //
-        if (_inTrial)
+        if (InSession)
         {
-            _trialDone = targetController.trialDone;
-
-            if (_trialDone)
+            if (_inTrial)
             {
-                Debug.Log("Trial Done");
-                // Tell Python that the trial ended
-                SendTrialEnd();
-                // Reset the booleans
-                _inTrial = false;
-                // Reset trial number to zero
-                _trialNum = 0;
-                _counter = 0;
+                _trialDone = targetController.trialDone;
+
+                if (_trialDone)
+                {
+                    Debug.Log("Trial Done");
+                    // Tell Python that the trial ended
+                    SendTrialEnd();
+                    // Reset the booleans
+                    _inTrial = false;
+                    // Reset trial number to zero
+                    _trialNum = 0;
+                    _counter = 0;
+                }
             }
         }
+
         
         // Get mouse position from OptiTrack and update the tracking square color
         // Note that these functions are defined in the RecorderBase class
@@ -155,7 +159,7 @@ public class Recorder_VR_TargetApproach : RecorderBase {
         // Send handshake message to Python process to confirm receipt of parameters
         OscMessage handshake = new OscMessage
         {
-            address = "/Handshake"
+            address = "/TrialHandshake"
         };
         handshake.values.Add(_trialNum);
         osc.Send(handshake);
