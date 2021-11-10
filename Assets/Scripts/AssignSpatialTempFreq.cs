@@ -16,10 +16,9 @@ public class AssignSpatialTempFreq : MonoBehaviour
     public Transform referencePoint;
     public float orientation;
     public float spatialFreq;     // units: cycles/deg
-    public float temporalFreq;    // units: cycles/sec
+    public float temporalFreq;    // units: cycles/sec (Hz)
     public float uvOffset = 0;
-    
-    
+
     private Material stripesMaterial;
 
     private float _Cycles;
@@ -57,7 +56,7 @@ public class AssignSpatialTempFreq : MonoBehaviour
             case surfaces.Sphere:
                 float radius = GetComponent<MeshRenderer>().bounds.size.magnitude / 2.0f;
                 _Cycles = calculateCyclesOnSphere(spatialFreq, radius);
-                gratingSpeed = temporalFreq; //calculateGratingSpeedOnSphere(temporalFreq, radius);
+                gratingSpeed = temporalFreq;
                 break;
             
             case surfaces.Plane:
@@ -77,6 +76,8 @@ public class AssignSpatialTempFreq : MonoBehaviour
         
         // Assign the orientation of the stripes
         stripesMaterial.SetFloat("_Orientation", orientation);
+        // transform.localRotation = Quaternion.identity;
+        // transform.localRotation = Quaternion.AngleAxis(orientation, -Vector3.forward);
     }
     
     float calculateCyclesOnSphere(float sf, float radius)
@@ -89,26 +90,12 @@ public class AssignSpatialTempFreq : MonoBehaviour
         
         return sf * 180.0f;
     }
-    
-    float calculateGratingSpeedOnSphere(float tf, float radius)
-    {
-        return tf * radius / arcLength(radius, 90.0f);
-    }
-    
+
     float calculateCyclesOnPlane(float sf, float visAngle)
     {
         // Assumes that spatial frequency comes in cycles/deg
         float cycles = sf * visAngle;
         return cycles;
-    }
-    
-    float calculateGratingSpeedOnPlane(float tf, float sf, float numCycles, float width, float distance, float visAngle)
-    {
-        // Get the unit distance per cycle
-        float cycleDist = width / numCycles;
-
-        // Multiply by temporal frequency to get the speed of the grating
-        return tf;
     }
 
     float arcLength(float radius, float angle)

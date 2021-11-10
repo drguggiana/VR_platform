@@ -48,8 +48,9 @@ Shader "Custom/Stripes"
 
 			struct v2f
 			{
-				float2 uv : TEXCOORD0;
 				float4 vertex : SV_POSITION;
+				float2 uv : TEXCOORD0;
+				
 			};
 			
 			v2f vert (appdata v)
@@ -87,7 +88,7 @@ Shader "Custom/Stripes"
 				pos += float2(_Offset, _Offset);
 
 				// Generate the correct number of stripes
-				int value = floor((frac(pos.y)) * _NumColors  + _WidthShift);
+				int value = floor(frac(pos.y) * _NumColors  + _WidthShift);
 				value = clamp(value, 0, _NumColors - 1);
 				switch (value) {
 					case 3: return _Color4;

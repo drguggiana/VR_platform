@@ -17,8 +17,8 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
     public GameObject gaborStim;
     private AssignSpatialTempFreq _assignSpatialTempFreq;
     private AssignGaussianAlpha _assignGaussianAlpha;
-    private float _orientation = 45.0f;
-    private float _spatialFreq = 0.02222f;
+    private float _orientation = 60.0f;
+    private float _spatialFreq = 0.04444f;
     private float _temporalFreq = 0.5f;
 
     // Private variables for the trial structure

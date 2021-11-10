@@ -84,13 +84,10 @@ public class RecorderBase : MonoBehaviour
     protected virtual void Update()
     {        
         // For debugging only
-        // #if (UNITY_EDITOR)
-        //
-        //     if ((_counter % 240 == 0) & !inSession)
-        //     {
-        //         inSession = true;
-        //     }
-        // #endif
+        #if (UNITY_EDITOR)
+            InSession = true;
+            InStartup = false;
+        #endif
         
         if (InSession)
         {
