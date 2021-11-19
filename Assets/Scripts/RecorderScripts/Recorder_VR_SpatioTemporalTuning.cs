@@ -47,9 +47,8 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         _assignSpatialTempFreq = gaborStim.GetComponent<AssignSpatialTempFreq>();
         _assignGaussianAlpha = gaborStim.GetComponentInChildren<AssignGaussianAlpha>();
 
-        // This function is derived from the RecorderBase class
-        // We only assign the header once we know what kind of objects are in the scene
-        AssembleHeader(0, 0, true);
+        // This function overrides the one found in the RecorderBase class
+        AssembleHeader();
     }
 
     // Update is called once per frame
@@ -86,7 +85,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         string mouseString = string.Join(", ", mouseData);
 
         // --- Data Saving --- //
-        string[] allData = { TimeStamp.ToString(), _trialNum.ToString(), mouseString, ColorFactor.ToString() };
+        string[] allData = { TimeStamp.ToString(), _trialNum.ToString(), mouseString, _assignSpatialTempFreq.uvOffset.ToString(), ColorFactor.ToString() };
         allData = allData.Where(x => !string.IsNullOrEmpty(x)).ToArray();
         Writer.WriteLine(string.Join(", ", allData));
     }
@@ -174,6 +173,17 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         };
         message.values.Add(_trialNum);
         osc.Send(message);
+    }
+    
+    // Functions for writing header of data file
+    void AssembleHeader ()
+    {
+        string[] header = {"time_m", "trial_num",
+            "mouse_x_m", "mouse_y_m", "mouse_z_m",
+            "mouse_xrot_m", "mouse_yrot_m", "mouse_zrot_m",
+            "grating_phase", "color_factor"};
+
+        Writer.WriteLine(string.Join(", ", header));
     }
     
 }
