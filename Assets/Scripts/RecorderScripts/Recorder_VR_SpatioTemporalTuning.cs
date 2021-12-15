@@ -40,7 +40,6 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // -- These are specific to the particular scene
         
         // Note that OnReceiveExpSetup is overridden from the base class
-        osc.SetAddressHandler("/SetupExperiment", OnReceiveExpSetup);
         osc.SetAddressHandler("/SetupTrial", OnReceiveTrialSetup);
 
         // Get the scripts for the gabor assignments
@@ -49,13 +48,22 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
 
         // This function overrides the one found in the RecorderBase class
         AssembleHeader();
+        // Get the recorder out of wait
+        SendReleaseWait();
     }
 
     // Update is called once per frame
     protected override void Update()
     {
+
+        // Wait for the recorder to signal
+        if (Release == false)
+        {
+            return;
+        }
+
         // --- Handle trial structure --- //
-        if (InSession & !InStartup)
+        if (InSession)
         {
             _trialTimer += Time.deltaTime;
             
@@ -136,20 +144,12 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // Reset trial timer
         _trialTimer = 0;
     }
-    
-    // --- Handle OSC Communication --- //
-    protected override void OnReceiveExpSetup(OscMessage message)
-    {
-        // Parse the values for trial structure setup
-        _trialDuration = float.Parse(message.values[0].ToString());
-        _interStimulusInterval = float.Parse(message.values[1].ToString());
-        
-        base.OnReceiveExpSetup(message);
-    }
-    
+
     void OnReceiveTrialSetup(OscMessage message)
     {
         // Parse the values for trial structure setup
+        _trialDuration = float.Parse(message.values[4].ToString());
+        _interStimulusInterval = float.Parse(message.values[5].ToString());
         _trialNumBuffer = int.Parse(message.values[0].ToString());
         _orientation = float.Parse(message.values[1].ToString());
         _temporalFreq = float.Parse(message.values[2].ToString());
@@ -172,6 +172,17 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
             address = "/EndTrial"
         };
         message.values.Add(_trialNum);
+        osc.Send(message);
+    }
+
+    void SendReleaseWait()
+    {
+        // Release the recorder from waiting
+        OscMessage message = new OscMessage()
+        {
+            address = "/ReleaseWait"
+        };
+        message.values.Add("device");
         osc.Send(message);
     }
     

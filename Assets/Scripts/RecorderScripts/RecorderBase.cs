@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
+using UnityEngine.ProBuilder.MeshOperations;
 
 /*
  This class is the base class for all recorder functions. Functionality common to all
@@ -31,11 +33,7 @@ public class RecorderBase : MonoBehaviour
     protected float ColorFactor = 0.0f;
     
     // Variables to handle the startup sequence
-    private float _startupTimerReference = 0f;
-    private float _startupSwitchTimer = 0f;
-    private float _switchDuration = 0.5f;
     protected bool InSession = false;
-    protected bool InStartup = true;
 
     // Variables for mouse position
     public GameObject mouse;
@@ -48,6 +46,9 @@ public class RecorderBase : MonoBehaviour
     
     // Writer for saving data
     protected StreamWriter Writer;
+    
+    // Waiting variable
+    protected bool Release = false;
 
     // Start is called before the first frame update
     protected virtual void Start()
@@ -63,9 +64,9 @@ public class RecorderBase : MonoBehaviour
         cam.nearClipPlane = 0.000001f;
         
         // set the OSC communication
-        osc.SetAddressHandler("/SetupExperiment", OnReceiveExpSetup);
         osc.SetAddressHandler("/SessionStart", OnReceiveSessionStart);
         osc.SetAddressHandler("/Close", OnReceiveStop);
+        osc.SetAddressHandler("/ReleaseWait", OnReleaseWait);
 
         // Get the tracking square material and set it to black to start
         _trackingSquareMaterial = trackingSquare.GetComponent<Renderer>().material;
@@ -86,17 +87,11 @@ public class RecorderBase : MonoBehaviour
         // For debugging only
         #if (UNITY_EDITOR)
             InSession = true;
-            InStartup = false;
         #endif
         
-        if (InSession)
-        {
-            if (InStartup) { TrackingSquareStartup(); }
-            else { SetTrackingSquare(); }
-            
-            GetMousePosition();
-        }       
-        
+        SetTrackingSquare();
+        GetMousePosition();
+
     }
     
     // Changes the tracking square color on each frame
@@ -119,35 +114,6 @@ public class RecorderBase : MonoBehaviour
         }
     }
 
-    // Creates a 1Hz signal for 2 seconds with the tracking square to signal the start of the experiment
-    private void TrackingSquareStartup()
-    {
-        // Set the square to white with the first frame
-        if (_startupTimerReference == 0.0f)
-        {
-            SetTrackingSquare();
-        }
-        
-        // Increment the clocks
-        _startupTimerReference += Time.deltaTime;
-        _startupSwitchTimer += Time.deltaTime;
-        
-        // If we're in the startup sequence, evaluate if the square needs to change
-        if (_startupTimerReference <= 2.0f) 
-        {
-            if (_startupSwitchTimer >= _switchDuration)
-            {
-                SetTrackingSquare();
-                _startupSwitchTimer = 0f;
-            }
-        }
-        else
-        {
-            InStartup = false;
-            SetTrackingSquare();
-        }
-    }
-    
     // Gets the mouse position from Motive on each frame and updates the timestamp in Motive time
     private void GetMousePosition()
     {
@@ -265,22 +231,12 @@ public class RecorderBase : MonoBehaviour
     }
 
     // --- Handle OSC Communication --- //
-    protected virtual void OnReceiveExpSetup(OscMessage message)
-    {
-        // Send message to Python process to confirm end of setup and that the trials can start
-        OscMessage readyMessage = new OscMessage
-        {
-            address = "/UnityReady"
-        };
-        readyMessage.values.Add(0);
-        osc.Send(readyMessage);
-    }
-
+    
     void OnReceiveSessionStart(OscMessage message)
     {
         InSession = true;
     }
-    
+
     void OnReceiveStop(OscMessage message)
     {
         // Close the writer
@@ -288,4 +244,23 @@ public class RecorderBase : MonoBehaviour
         // Kill the application
         Application.Quit();
     }
+
+    protected void OnReleaseWait(OscMessage message)
+    {
+        // Release the waiting to start recording from the loop
+        Release = true;
+    }
+    
+    protected void PythonPrint(int msg)
+    {
+        //For OSC debugging
+        OscMessage handshake = new OscMessage
+        {
+            address = "/Print"
+        };
+    
+        handshake.values.Add(msg);
+        osc.Send(handshake);
+    }
+
 }
