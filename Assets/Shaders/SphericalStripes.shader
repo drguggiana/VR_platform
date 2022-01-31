@@ -101,6 +101,7 @@ Shader "Custom/SphericalStripes"
 				// Apply number of cycles
 				pos.y *= _Cycles;
 
+				// Need to subtract instead of add because neuro orientation convention is backwards
 				pos -= float2(_Offset, _Offset);
 
 				// Generate the correct number of stripes
