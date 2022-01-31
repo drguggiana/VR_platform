@@ -16,6 +16,7 @@ using UnityEngine.ProBuilder.MeshOperations;
  the OSC communication and listening for the kill signal. 
 */
 
+
 //[ExecuteInEditMode]
 public class RecorderBase : MonoBehaviour
 {
@@ -31,9 +32,6 @@ public class RecorderBase : MonoBehaviour
     private Material _trackingSquareMaterial;
     private Color _newColor;
     protected float ColorFactor = 0.0f;
-    
-    // Variables to handle the startup sequence
-    protected bool InSession = false;
 
     // Variables for mouse position
     public GameObject mouse;
@@ -46,6 +44,9 @@ public class RecorderBase : MonoBehaviour
     
     // Writer for saving data
     protected StreamWriter Writer;
+
+    // Variables to handle the startup sequence
+    protected bool InSession = false;
     
     // Waiting variable
     protected bool Release = false;
@@ -87,6 +88,7 @@ public class RecorderBase : MonoBehaviour
         // For debugging only
         #if (UNITY_EDITOR)
             InSession = true;
+            Release = true;
         #endif
         
         SetTrackingSquare();

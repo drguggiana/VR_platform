@@ -43,11 +43,11 @@ public class DemoRecorderBase : MonoBehaviour
     // Update is called once per frame
     protected virtual void Update()
     {
-        SetTrackingSqaure();
+        SetTrackingSquare();
         GetMousePosition();
     }
     
-    public void SetTrackingSqaure()
+    private void SetTrackingSquare()
     {
         // create the color for the square
         Color new_color = new Color(_colorFactor, _colorFactor, _colorFactor, 1f);
@@ -64,7 +64,7 @@ public class DemoRecorderBase : MonoBehaviour
         }
     }
     
-    public void GetMousePosition()
+    private void GetMousePosition()
     {
         OptitrackRigidBodyState rbState = streamingClient.GetLatestRigidBodyState(rigidBodyId);
         if (rbState != null)

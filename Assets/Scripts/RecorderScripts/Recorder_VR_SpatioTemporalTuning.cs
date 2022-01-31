@@ -48,6 +48,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
 
         // This function overrides the one found in the RecorderBase class
         AssembleHeader();
+        
         // Get the recorder out of wait
         SendReleaseWait();
     }
