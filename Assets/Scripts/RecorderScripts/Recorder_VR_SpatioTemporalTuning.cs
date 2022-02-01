@@ -10,7 +10,7 @@ using UnityEngine;
  the current time and color of the tracking square.
 */
 
-//[ExecuteInEditMode]
+[ExecuteInEditMode]
 public class Recorder_VR_SpatioTemporalTuning : RecorderBase
 {
     // Private variables for the Gabor stimulus
@@ -191,9 +191,9 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
     void AssembleHeader ()
     {
         string[] header = {"time_m", "trial_num",
-            "mouse_x_m", "mouse_y_m", "mouse_z_m",
-            "mouse_xrot_m", "mouse_yrot_m", "mouse_zrot_m",
-            "grating_phase", "color_factor"};
+                           "mouse_x_m", "mouse_y_m", "mouse_z_m",
+                           "mouse_xrot_m", "mouse_yrot_m", "mouse_zrot_m",
+                           "grating_phase", "color_factor"};
 
         Writer.WriteLine(string.Join(", ", header));
     }
