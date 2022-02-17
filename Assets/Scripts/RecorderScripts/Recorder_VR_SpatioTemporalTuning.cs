@@ -24,7 +24,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
     // Private variables for the trial structure
     private float _trialTimer = 0f;
     private int _trialNumBuffer = 0;    // This is a variable that temporarily holds the trial number
-    private int _trialNum = 0;
+    private int _trialNum = -1;
     private bool _inTrial = false;
     private float _trialDuration = 5;         // In seconds
     private float _interStimulusInterval = 5;     // In seconds
@@ -97,6 +97,14 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         string[] allData = { TimeStamp.ToString(), _trialNum.ToString(), mouseString, _assignSpatialTempFreq.uvOffset.ToString(), ColorFactor.ToString() };
         allData = allData.Where(x => !string.IsNullOrEmpty(x)).ToArray();
         Writer.WriteLine(string.Join(", ", allData));
+    }
+    
+    // --- Overrides from base --- //
+    protected override void OnReceiveSessionStart(OscMessage message)
+    {
+        base.OnReceiveSessionStart(message);
+        _trialNum = 0;
+
     }
     
 
@@ -195,7 +203,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
                            "mouse_xrot_m", "mouse_yrot_m", "mouse_zrot_m",
                            "grating_phase", "color_factor"};
 
-        Writer.WriteLine(string.Join(", ", header));
+        Writer.WriteLine(string.Join(",", header));
     }
     
 }

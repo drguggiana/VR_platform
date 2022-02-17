@@ -151,12 +151,12 @@ public class RecorderBase : MonoBehaviour
         {
             Vector3 cornerPosition = corner.transform.position;
             object[] cornerCoord = { cornerPosition.x, cornerPosition.z };
-            string arenaCorner = "[" + string.Join(", ", cornerCoord) + "]";
+            string arenaCorner = "[" + string.Join(",", cornerCoord) + "]";
             corners[i] = arenaCorner;
             i++;
         }
 
-        string arenaCornersString = string.Concat("arena_corners: ", "[", string.Join(",", corners), "]");
+        string arenaCornersString = string.Concat("arena_corners:", "[", string.Join(",", corners), "]");
         Writer.WriteLine(arenaCornersString);
 
         // handle any obstacles in the arena. This only logs the centroid of the obstacle
@@ -165,7 +165,7 @@ public class RecorderBase : MonoBehaviour
             string thisObstacle = obstacle.name.ToLower();
             Vector3 obstaclePosition = obstacle.transform.position;
             object[] obstacleCoords = { obstaclePosition.x, obstaclePosition.y, obstaclePosition.z };
-            thisObstacle = string.Concat(thisObstacle + "obs: ", " [", string.Join(",", obstacleCoords), "]");
+            thisObstacle = string.Concat(thisObstacle + "obs:", " [", string.Join(",", obstacleCoords), "]");
             Writer.WriteLine(thisObstacle);
         }
 
@@ -234,7 +234,7 @@ public class RecorderBase : MonoBehaviour
 
     // --- Handle OSC Communication --- //
     
-    void OnReceiveSessionStart(OscMessage message)
+    protected virtual void OnReceiveSessionStart(OscMessage message)
     {
         InSession = true;
     }
