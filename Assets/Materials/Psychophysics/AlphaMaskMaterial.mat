@@ -122,7 +122,7 @@ Material:
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 1
     - _EnvironmentReflections: 1
-    - _Gain: 2
+    - _Gain: 1.25
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0

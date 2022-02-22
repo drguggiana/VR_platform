@@ -100,19 +100,29 @@ public class RecorderBase : MonoBehaviour
     private void SetTrackingSquare()
     {
         // create the color for the square
-        _newColor = new Color(ColorFactor, ColorFactor, ColorFactor, 1f);
+        // _newColor = new Color(ColorFactor, ColorFactor, ColorFactor, 1f);
+        // _newColor = new Color(0.0f, 0.0f, ColorFactor, 1.0f);
+        _newColor = new Color(0.0f, 0.0f, ColorFactor, 255f)/255f;
         
         // put it on the square   
         _trackingSquareMaterial.SetColor("_Color", _newColor);
         
         // Define the color for the next iteration (switch it)
-        if (ColorFactor > 0.0f)
+        if (ColorFactor > 80f)
         {
             ColorFactor = 0.0f;
         }
+        else if (ColorFactor < 16f)
+        {
+            ColorFactor = 17f;
+        }
+        else if (ColorFactor < 63f && ColorFactor > 16f)
+        {
+            ColorFactor = 65f;
+        }
         else
         {
-            ColorFactor = 1.0f;
+            ColorFactor = 81f;
         }
     }
 
