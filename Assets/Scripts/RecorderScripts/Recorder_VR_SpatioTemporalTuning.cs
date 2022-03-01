@@ -66,8 +66,13 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // --- Handle trial structure --- //
         if (InSession)
         {
-            _trialTimer += Time.deltaTime;
-            
+            if ((MouseOrientation.y > Paths.shadow_boundaries[0]) && 
+                (MouseOrientation.y < Paths.shadow_boundaries[1]) && 
+                (_inTrial))
+            {
+                _trialTimer += Time.deltaTime;
+            }
+
             if (_inTrial)
             {
                 if (_trialTimer > _trialDuration)
