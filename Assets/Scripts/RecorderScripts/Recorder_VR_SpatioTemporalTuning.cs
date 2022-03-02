@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using UnityEngine;
 
@@ -66,9 +67,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // --- Handle trial structure --- //
         if (InSession)
         {
-            if ((MouseOrientation.y > Paths.shadow_boundaries[0]) && 
-                (MouseOrientation.y < Paths.shadow_boundaries[1]) && 
-                (_inTrial))
+            if (GateTrial())
             {
                 _trialTimer += Time.deltaTime;
             }
@@ -157,6 +156,24 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         
         // Reset trial timer
         _trialTimer = 0;
+    }
+
+    bool GateTrial()
+    {
+        if (_inTrial)
+        {
+            // Goal is to get the angle subtended by the shadow
+            // unpack the coordinates of the shadow edges 
+            // determine the vectors to the shadow from the head of the mouse
+            
+            // based on these vectors, determine the heading angles of the shadow wrt the 0 azimuth of the mouse
+            // quantify the overlap with the visual field
+            // compare to a threshold and output the boolean result
+            
+            return true;
+        }
+
+        return true;
     }
 
     void OnReceiveTrialSetup(OscMessage message)
