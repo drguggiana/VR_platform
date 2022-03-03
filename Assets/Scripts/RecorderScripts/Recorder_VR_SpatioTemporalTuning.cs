@@ -27,7 +27,8 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
     // Private variables for the trial structure
     private float _trialTimer = 0f;
     private int _trialNumBuffer = 0;    // This is a variable that temporarily holds the trial number
-    private int _trialNum = -1;
+    private int _trialNum = -1; // trial number from Python
+    private int _trialNumWrite = -1; // trial number actually saved
     private bool _inTrial = false;
     private float _trialDuration = 5;         // In seconds
     private float _interStimulusInterval = 5;     // In seconds
@@ -71,7 +72,14 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         {
             if (GateTrial())
             {
+                // advance the timer and record the actual trial number
                 _trialTimer += Time.deltaTime;
+                _trialNumWrite = _trialNum;
+            }
+            else
+            {
+                // timer stays and we tag the frames
+                _trialNumWrite = -2;
             }
 
             if (_inTrial)
@@ -100,7 +108,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         string mouseString = string.Join(", ", mouseData);
 
         // --- Data Saving --- //
-        string[] allData = { TimeStamp.ToString(), _trialNum.ToString(), mouseString, _assignSpatialTempFreq.uvOffset.ToString(), ColorFactor.ToString() };
+        string[] allData = { TimeStamp.ToString(), _trialNumWrite.ToString(), mouseString, _assignSpatialTempFreq.uvOffset.ToString(), ColorFactor.ToString() };
         allData = allData.Where(x => !string.IsNullOrEmpty(x)).ToArray();
         Writer.WriteLine(string.Join(", ", allData));
     }
@@ -166,7 +174,6 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         {
             // Goal is to get the angle subtended by the shadow
             // TODO: check arena coordinate system (0,0 and direction of rotation)
-            // TODO: define these properly based on the real shadow (use markers)
             // unpack the coordinates of the shadow edges 
             int[] edgeLeft = new int[2]; 
             int[] edgeRight = new int[2];
@@ -187,7 +194,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
             // get the center angle and width
             float widthShadow = Mathf.DeltaAngle(angleLeftAbsolute, angleRightAbsolute);
             float centerShadowAbsolute = (widthShadow / 2) + angleLeftAbsolute;
-
+            // convert the center to relative to mouse heading
             float centerShadowRelative =  Mathf.DeltaAngle(MouseOrientation.y, centerShadowAbsolute);
             
             // quantify the overlap with the visual field
