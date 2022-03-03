@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -163,13 +165,41 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         if (_inTrial)
         {
             // Goal is to get the angle subtended by the shadow
+            // TODO: check arena coordinate system (0,0 and direction of rotation)
+            // TODO: define these properly based on the real shadow (use markers)
             // unpack the coordinates of the shadow edges 
-            // determine the vectors to the shadow from the head of the mouse
-            
+            int[] edgeLeft = new int[2]; 
+            int[] edgeRight = new int[2];
+            int centerStim = Paths.shadow_boundaries[4];
+            int widthStim = Paths.shadow_boundaries[5];
+            int threshold = Paths.shadow_boundaries[6];
+
+            Array.Copy(Paths.shadow_boundaries, 0, edgeLeft, 0, 2);
+            Array.Copy(Paths.shadow_boundaries, 2, edgeRight, 0, 2);
+            // determine the vectors to the shadow from the head of the mouse 
+            float xVectorLeftRelative = edgeLeft[0] - MousePosition.x;
+            float zVectorLeftRelative = edgeLeft[1] - MousePosition.z;
+            float xVectorRightRelative = edgeRight[0] - MousePosition.x;
+            float zVectorRightRelative = edgeRight[1] - MousePosition.z;
             // based on these vectors, determine the heading angles of the shadow wrt the 0 azimuth of the mouse
-            // quantify the overlap with the visual field
-            // compare to a threshold and output the boolean result
+            float angleLeftAbsolute = Mathf.Atan2(zVectorLeftRelative, xVectorLeftRelative) * Mathf.Rad2Deg;
+            float angleRightAbsolute = Mathf.Atan2(zVectorRightRelative, xVectorRightRelative) * Mathf.Rad2Deg;
+            // get the center angle and width
+            float widthShadow = Mathf.DeltaAngle(angleLeftAbsolute, angleRightAbsolute);
+            float centerShadowAbsolute = (widthShadow / 2) + angleLeftAbsolute;
+
+            float centerShadowRelative =  Mathf.DeltaAngle(MouseOrientation.y, centerShadowAbsolute);
             
+            // quantify the overlap with the visual field
+            float overlap = Mathf.Min(widthShadow, widthStim) 
+                            - Mathf.DeltaAngle(centerStim, centerShadowRelative)
+                            + Mathf.Abs(widthShadow - widthStim) / 2;
+            // compare to a threshold and output the boolean result
+            if (overlap > threshold)
+            {
+                return false;
+            }
+
             return true;
         }
 
