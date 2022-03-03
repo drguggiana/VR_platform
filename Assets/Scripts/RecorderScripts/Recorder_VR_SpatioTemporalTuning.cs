@@ -53,19 +53,20 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // This function overrides the one found in the RecorderBase class
         AssembleHeader();
         
-        // Get the recorder out of wait
-        SendReleaseWait();
+        // // Get the recorder out of wait
+        // SendReleaseWait();
+        InSession = true;
     }
 
     // Update is called once per frame
     protected override void Update()
     {
 
-        // Wait for the recorder to signal
-        if (Release == false)
-        {
-            return;
-        }
+        // // Wait for the recorder to signal
+        // if (Release == false)
+        // {
+        //     return;
+        // }
 
         // --- Handle trial structure --- //
         if (InSession)
@@ -106,7 +107,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         object[] mouseData = { MousePosition.x, MousePosition.y, MousePosition.z, 
                                MouseOrientation.x, MouseOrientation.y, MouseOrientation.z };
         string mouseString = string.Join(", ", mouseData);
-
+        
         // --- Data Saving --- //
         string[] allData = { TimeStamp.ToString(), _trialNumWrite.ToString(), mouseString, _assignSpatialTempFreq.uvOffset.ToString(), ColorFactor.ToString() };
         allData = allData.Where(x => !string.IsNullOrEmpty(x)).ToArray();
@@ -193,7 +194,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
             float angleRightAbsolute = Mathf.Atan2(zVectorRightRelative, xVectorRightRelative) * Mathf.Rad2Deg;
             // get the center angle and width
             float widthShadow = Mathf.DeltaAngle(angleLeftAbsolute, angleRightAbsolute);
-            float centerShadowAbsolute = (widthShadow / 2) + angleLeftAbsolute;
+            float centerShadowAbsolute = widthShadow / 2 + angleLeftAbsolute;
             // convert the center to relative to mouse heading
             float centerShadowRelative =  Mathf.DeltaAngle(MouseOrientation.y, centerShadowAbsolute);
             
@@ -202,8 +203,10 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
                             - Mathf.DeltaAngle(centerStim, centerShadowRelative)
                             + Mathf.Abs(widthShadow - widthStim) / 2;
             // compare to a threshold and output the boolean result
+            Debug.Log(overlap);
             if (overlap > threshold)
             {
+                _assignSpatialTempFreq.uvOffset = 0;
                 return false;
             }
 
