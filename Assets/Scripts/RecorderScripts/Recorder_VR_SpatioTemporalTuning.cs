@@ -178,12 +178,14 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
             // unpack the coordinates of the shadow edges 
             int[] edgeLeft = new int[2]; 
             int[] edgeRight = new int[2];
-            int centerStim = Paths.shadow_boundaries[4];
-            int widthStim = Paths.shadow_boundaries[5];
-            int threshold = Paths.shadow_boundaries[6];
 
             Array.Copy(Paths.shadow_boundaries, 0, edgeLeft, 0, 2);
             Array.Copy(Paths.shadow_boundaries, 2, edgeRight, 0, 2);
+            // unpack the stimulus data
+            int centerStim = Paths.shadow_boundaries[4];
+            int widthStim = Paths.shadow_boundaries[5];
+            int threshold = Paths.shadow_boundaries[6];
+            
             // determine the vectors to the shadow from the head of the mouse 
             float xVectorLeftRelative = edgeLeft[0] - MousePosition.x;
             float zVectorLeftRelative = edgeLeft[1] - MousePosition.z;
@@ -203,7 +205,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
                             - Mathf.DeltaAngle(centerStim, centerShadowRelative)
                             + Mathf.Abs(widthShadow - widthStim) / 2;
             // compare to a threshold and output the boolean result
-            Debug.Log(overlap);
+            Debug.Log(widthShadow);
             if (overlap > threshold)
             {
                 _assignSpatialTempFreq.uvOffset = 0;
