@@ -55,7 +55,6 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         
         // Get the recorder out of wait
         SendReleaseWait();
-        // InSession = true;
     }
 
     // Update is called once per frame
@@ -174,7 +173,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         if (_inTrial)
         {
             // Goal is to get the angle subtended by the shadow
-            // TODO: check arena coordinate system (0,0 and direction of rotation)
+
             // unpack the coordinates of the shadow edges 
             int[] edgeLeft = new int[2]; 
             int[] edgeRight = new int[2];
@@ -196,10 +195,9 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
             float angleRightAbsolute = Mathf.Atan2(zVectorRightRelative, -xVectorRightRelative) * Mathf.Rad2Deg;
             // get the center angle and width
             float widthShadow = Mathf.Abs(Mathf.DeltaAngle(angleLeftAbsolute, angleRightAbsolute));
-            // float widthShadow = angleLeftAbsolute - angleRightAbsolute;
             float centerShadowAbsolute = widthShadow / 2 + angleLeftAbsolute;
             // convert the mouse orientation to -180-180 coordinates from 0-360
-            float mouseCorrectedOri = 0.0f;
+            float mouseCorrectedOri;
             if (MouseOrientation.y > 180)
             {
                 mouseCorrectedOri = MouseOrientation.y - 360;
@@ -210,21 +208,12 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
             }
             // convert the center to relative to mouse heading
             float centerShadowRelative =  Mathf.DeltaAngle(mouseCorrectedOri, centerShadowAbsolute);
-            // float centerShadowRelative =  Mathf.DeltaAngle(centerShadowAbsolute, MouseOrientation.y);
             
             // quantify the overlap with the visual field
             float overlap = Mathf.Clamp(Mathf.Min(widthShadow, widthStim) 
                             - Mathf.Abs(Mathf.DeltaAngle(centerStim, centerShadowRelative))
                             + Mathf.Abs(widthShadow - widthStim) / 2, 0.0f, 360);
             // compare to a threshold and output the boolean result
-            // Debug.Log("overlap " + overlap);
-            
-            // Debug.Log("centerabsolute " + centerShadowAbsolute);
-            // Debug.Log("centerrelative " + centerShadowRelative);
-            // Debug.Log("left " + angleLeftAbsolute);
-            // Debug.Log("right " + angleRightAbsolute);
-            // Debug.Log("orientation " + MouseOrientation.y);
-            // Debug.Log("width " + widthShadow);
             if (overlap > threshold)
             {
                 _assignSpatialTempFreq.uvOffset = 0;
