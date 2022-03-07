@@ -53,20 +53,20 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // This function overrides the one found in the RecorderBase class
         AssembleHeader();
         
-        // // Get the recorder out of wait
-        // SendReleaseWait();
-        InSession = true;
+        // Get the recorder out of wait
+        SendReleaseWait();
+        // InSession = true;
     }
 
     // Update is called once per frame
     protected override void Update()
     {
 
-        // // Wait for the recorder to signal
-        // if (Release == false)
-        // {
-        //     return;
-        // }
+        // Wait for the recorder to signal
+        if (Release == false)
+        {
+            return;
+        }
 
         // --- Handle trial structure --- //
         if (InSession)
@@ -213,11 +213,12 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
             // float centerShadowRelative =  Mathf.DeltaAngle(centerShadowAbsolute, MouseOrientation.y);
             
             // quantify the overlap with the visual field
-            float overlap = Mathf.Min(widthShadow, widthStim) 
-                            - Mathf.DeltaAngle(centerStim, centerShadowRelative)
-                            + Mathf.Abs(widthShadow - widthStim) / 2;
+            float overlap = Mathf.Clamp(Mathf.Min(widthShadow, widthStim) 
+                            - Mathf.Abs(Mathf.DeltaAngle(centerStim, centerShadowRelative))
+                            + Mathf.Abs(widthShadow - widthStim) / 2, 0.0f, 360);
             // compare to a threshold and output the boolean result
-            Debug.Log("overlap " + overlap);
+            // Debug.Log("overlap " + overlap);
+            
             // Debug.Log("centerabsolute " + centerShadowAbsolute);
             // Debug.Log("centerrelative " + centerShadowRelative);
             // Debug.Log("left " + angleLeftAbsolute);
