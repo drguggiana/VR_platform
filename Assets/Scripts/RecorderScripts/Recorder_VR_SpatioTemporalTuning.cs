@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -24,7 +27,8 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
     // Private variables for the trial structure
     private float _trialTimer = 0f;
     private int _trialNumBuffer = 0;    // This is a variable that temporarily holds the trial number
-    private int _trialNum = -1;
+    private int _trialNum = -1; // trial number from Python
+    private int _trialNumWrite = -1; // trial number actually saved
     private bool _inTrial = false;
     private float _trialDuration = 5;         // In seconds
     private float _interStimulusInterval = 5;     // In seconds
@@ -66,8 +70,18 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // --- Handle trial structure --- //
         if (InSession)
         {
-            _trialTimer += Time.deltaTime;
-            
+            if (GateTrial())
+            {
+                // advance the timer and record the actual trial number
+                _trialTimer += Time.deltaTime;
+                _trialNumWrite = _trialNum;
+            }
+            else
+            {
+                // timer stays and we tag the frames
+                _trialNumWrite = -2;
+            }
+
             if (_inTrial)
             {
                 if (_trialTimer > _trialDuration)
@@ -92,9 +106,9 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         object[] mouseData = { MousePosition.x, MousePosition.y, MousePosition.z, 
                                MouseOrientation.x, MouseOrientation.y, MouseOrientation.z };
         string mouseString = string.Join(", ", mouseData);
-
+        
         // --- Data Saving --- //
-        string[] allData = { TimeStamp.ToString(), _trialNum.ToString(), mouseString, _assignSpatialTempFreq.uvOffset.ToString(), ColorFactor.ToString() };
+        string[] allData = { TimeStamp.ToString(), _trialNumWrite.ToString(), mouseString, _assignSpatialTempFreq.uvOffset.ToString(), ColorFactor.ToString() };
         allData = allData.Where(x => !string.IsNullOrEmpty(x)).ToArray();
         Writer.WriteLine(string.Join(", ", allData));
     }
@@ -152,6 +166,64 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         
         // Reset trial timer
         _trialTimer = 0;
+    }
+
+    bool GateTrial()
+    {
+        if (_inTrial)
+        {
+            // Goal is to get the angle subtended by the shadow
+
+            // unpack the coordinates of the shadow edges 
+            int[] edgeLeft = new int[2]; 
+            int[] edgeRight = new int[2];
+
+            Array.Copy(Paths.shadow_boundaries, 0, edgeLeft, 0, 2);
+            Array.Copy(Paths.shadow_boundaries, 2, edgeRight, 0, 2);
+            // unpack the stimulus data
+            int centerStim = Paths.shadow_boundaries[4];
+            int widthStim = Paths.shadow_boundaries[5];
+            int threshold = Paths.shadow_boundaries[6];
+            
+            // determine the vectors to the shadow from the head of the mouse (correcting position units to mm)
+            float xVectorLeftRelative = edgeLeft[0] - MousePosition.x * 1000;
+            float zVectorLeftRelative = edgeLeft[1] - MousePosition.z * 1000;
+            float xVectorRightRelative = edgeRight[0] - MousePosition.x * 1000;
+            float zVectorRightRelative = edgeRight[1] - MousePosition.z * 1000;
+            // based on these vectors, determine the heading angles of the shadow wrt the 0 azimuth of the mouse
+            float angleLeftAbsolute = Mathf.Atan2(zVectorLeftRelative, -xVectorLeftRelative) * Mathf.Rad2Deg;
+            float angleRightAbsolute = Mathf.Atan2(zVectorRightRelative, -xVectorRightRelative) * Mathf.Rad2Deg;
+            // get the center angle and width
+            float widthShadow = Mathf.Abs(Mathf.DeltaAngle(angleLeftAbsolute, angleRightAbsolute));
+            float centerShadowAbsolute = widthShadow / 2 + angleLeftAbsolute;
+            // convert the mouse orientation to -180-180 coordinates from 0-360
+            float mouseCorrectedOri;
+            if (MouseOrientation.y > 180)
+            {
+                mouseCorrectedOri = MouseOrientation.y - 360;
+            }
+            else
+            {
+                mouseCorrectedOri = MouseOrientation.y;    
+            }
+            // convert the center to relative to mouse heading
+            float centerShadowRelative =  Mathf.DeltaAngle(mouseCorrectedOri, centerShadowAbsolute);
+            
+            // quantify the overlap with the visual field
+            float overlap = Mathf.Clamp(Mathf.Min(widthShadow, widthStim) 
+                            - Mathf.Abs(Mathf.DeltaAngle(centerStim, centerShadowRelative))
+                            + Mathf.Abs(widthShadow - widthStim) / 2, 0.0f, 360);
+            // compare to a threshold and output the boolean result
+            if (overlap > threshold)
+            {
+                _assignSpatialTempFreq.uvOffset = 0;
+                return false;
+            }
+
+            return true;
+        }
+
+        return true;
     }
 
     void OnReceiveTrialSetup(OscMessage message)
