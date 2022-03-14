@@ -10,6 +10,8 @@ Assets/Prefabs/
 Assets/Samples/
 Assets/Scripts/Paths.cs
 Assets/Scripts/Paths.cs.meta
+Assets/Resources/*.onnx
+Assets/Resources/*.onnx.meta
 
 etc
 packages.config

@@ -249,7 +249,7 @@ public class RecorderBase : MonoBehaviour
         InSession = true;
     }
 
-    void OnReceiveStop(OscMessage message)
+    protected virtual void OnReceiveStop(OscMessage message)
     {
         // Close the writer
         Writer.Close();

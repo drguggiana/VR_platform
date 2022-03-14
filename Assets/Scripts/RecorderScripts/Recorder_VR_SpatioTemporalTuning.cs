@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Unity.Barracuda;
 using UnityEngine;
 
 /*
@@ -32,8 +33,10 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
     private bool _inTrial = false;
     private float _trialDuration = 5;         // In seconds
     private float _interStimulusInterval = 5;     // In seconds
-    
-    
+    // Private variables for the eye prediction
+    // private IWorker _worker;
+
+
     // Start is called before the first frame update
     protected override void Start()
     {
@@ -42,6 +45,9 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         
         // -------------------------------------------
         // -- These are specific to the particular scene
+        
+        // Initialize eye prediction network
+        // InitializePrediction();
         
         // Note that OnReceiveExpSetup is overridden from the base class
         osc.SetAddressHandler("/SetupTrial", OnReceiveTrialSetup);
@@ -55,17 +61,18 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         
         // Get the recorder out of wait
         SendReleaseWait();
+        InSession = true;
     }
 
     // Update is called once per frame
     protected override void Update()
     {
 
-        // Wait for the recorder to signal
-        if (Release == false)
-        {
-            return;
-        }
+        // // Wait for the recorder to signal
+        // if (Release == false)
+        // {
+        //     return;
+        // }
 
         // --- Handle trial structure --- //
         if (InSession)
@@ -101,7 +108,10 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // Get mouse position from OptiTrack and update the tracking square color
         // Note that these functions are defined in the RecorderBase class
         base.Update();
-        
+
+        // float[] prediction = Predict();
+        // Debug.Log(prediction[0]);
+
         // --- Handle mouse data --- //
         object[] mouseData = { MousePosition.x, MousePosition.y, MousePosition.z, 
                                MouseOrientation.x, MouseOrientation.y, MouseOrientation.z };
@@ -277,6 +287,41 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
 
         Writer.WriteLine(string.Join(",", header));
     }
+    
+    // // Eye prediction
+    // void InitializePrediction()
+    // {
+    //     // define the path to the model
+    //     // string modelSource = Paths.eye_model_path;
+    //     var model = ModelLoader.Load((NNModel)Resources.Load("03_14_2022_10_33_26_eyemodel"));
+    //     _worker = WorkerFactory.CreateWorker(WorkerFactory.Type.ComputePrecompiled, model);
+    // }
+    //
+    // float[] Predict()
+    // {
+    //     // get the head angles and package into a tensor
+    //     Tensor headTensor = new Tensor(1, 2, new [] {MouseOrientation.x, MouseOrientation.y});
+    //
+    //     // run the prediction
+    //     _worker.Execute(headTensor);
+    //     // get the output
+    //     Tensor output = _worker.PeekOutput();
+    //     // package into a float
+    //     float[] floatOut = {output[0], output[1], output[2], output[3]};
+    //     
+    //     // GC
+    //     output.Dispose();
+    //     headTensor.Dispose();
+    //     // return the output
+    //     return floatOut;
+    // }
+    //
+    // protected override void OnReceiveStop(OscMessage message)
+    // {
+    //     // Garbage collect the NN variables before closing
+    //     _worker.Dispose();
+    //     base.OnReceiveStop(message);
+    // }
     
 }
 

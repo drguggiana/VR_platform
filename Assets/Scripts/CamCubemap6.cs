@@ -4,6 +4,7 @@
 //Include the pertinent libraries
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Barracuda;
 using UnityEngine;
 //so it runs during edit mode
 [ExecuteInEditMode]
@@ -21,18 +22,22 @@ public class CamCubemap6 : MonoBehaviour
     private RenderTexture rtex;
     //declare the variable to send rotation to the shader, not needed now
     //private Vector4 rot;
+    private IWorker _worker;
 
     void Start()
     {
         // render all six faces at startup
         UpdateCubemap(63);
+        InitializePrediction();
     }
 
     void LateUpdate()
-    {
+    {  
+       float[] prediction = Predict(); 
+       Debug.Log(prediction[0]);
        //render the faces this frame
        UpdateCubemap(63); // all six faces
-        
+
     }
 
     void UpdateCubemap(int faceMask)
@@ -100,5 +105,35 @@ public class CamCubemap6 : MonoBehaviour
         //once done, destroy the cam and texture
         DestroyImmediate(cam);
         DestroyImmediate(rtex);
+        _worker.Dispose();
+
     }
+    // Eye prediction
+    void InitializePrediction()
+    {
+        // define the path to the model
+        // string modelSource = Paths.eye_model_path;
+        var model = ModelLoader.Load((NNModel)Resources.Load("03_14_2022_10_33_26_eyemodel"));
+        _worker = WorkerFactory.CreateWorker(WorkerFactory.Type.ComputePrecompiled, model);
+    }
+
+    float[] Predict()
+    {
+        // get the head angles and package into a tensor
+        Tensor headTensor = new Tensor(1, 2, new [] {playerTrans.rotation.x, playerTrans.rotation.y});
+
+        // run the prediction
+        _worker.Execute(headTensor);
+        // get the output
+        Tensor output = _worker.PeekOutput();
+        // package into a float
+        float[] floatOut = {output[0], output[1], output[2], output[3]};
+        
+        // GC
+        output.Dispose();
+        headTensor.Dispose();
+        // return the output
+        return floatOut;
+    }
+
 }
