@@ -17,17 +17,17 @@ public class PerlinNoise : MonoBehaviour
     private float offsetX;
     private float offsetY;
 
-    private Renderer renderer;
+    private Renderer generatedRenderer;
  
 
     void Start()
     {
-        renderer = GetComponent<Renderer>();
+        generatedRenderer = GetComponent<Renderer>();
 
         offsetX = Random.Range(0f, 100f);
         offsetY = Random.Range(0f, 100f);
 
-        renderer.material.mainTexture = GenerateTexture();
+        generatedRenderer.material.mainTexture = GenerateTexture();
 
     }
 

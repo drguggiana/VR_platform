@@ -1,0 +1,91 @@
+<html>
+<head>
+<title>RotateUVs3.shader</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #d0d0d0;}
+.s1 { color: #c9a26d;}
+.s2 { color: #85c46c; font-style: italic;}
+.s3 { color: #ed94c0;}
+.s4 { color: #6c95eb;}
+</style>
+</head>
+<body bgcolor="#262626">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+RotateUVs3.shader</font>
+</center></td></tr></table>
+<pre>  <span class="s0">Shader </span><span class="s1">&quot;Custom/RotateUVs3&quot; </span><span class="s0">{</span>
+        <span class="s0">Properties {</span>
+			<span class="s2">//add the cubemap texture to the inspector properties (here is where the script will send the cubemap)</span>
+			<span class="s0">_Cube (</span><span class="s1">&quot;Reflection Cubemap&quot;</span><span class="s0">, Cube) = </span><span class="s1">&quot;_Skybox&quot; </span><span class="s0">{}</span>
+			<span class="s2">//this is where the rotation is sent from the script if active (not needed now)</span>
+            <span class="s2">//_Rotation (&quot;Rotation Speed&quot;, Vector) = (2,2,2,1)</span>
+			<span class="s2">//this is the albedo of the output, using default normally</span>
+			<span class="s0">_ReflectColor (</span><span class="s1">&quot;Reflection Color&quot;</span><span class="s0">, Color) = (</span><span class="s3">1</span><span class="s0">,</span><span class="s3">1</span><span class="s0">,</span><span class="s3">1</span><span class="s0">,</span><span class="s3">0.5</span><span class="s0">)</span>
+			<span class="s2">//here is where the script sends the player position</span>
+			<span class="s0">_Player (</span><span class="s1">&quot;Player position&quot;</span><span class="s0">, Vector) = (</span><span class="s3">0</span><span class="s0">, </span><span class="s3">0</span><span class="s0">, </span><span class="s3">0</span><span class="s0">, </span><span class="s3">0</span><span class="s0">)</span>
+
+        <span class="s0">}</span>
+        <span class="s0">SubShader {</span>
+			<span class="s2">//define the type of render and the Level Of Detail</span>
+            <span class="s0">Tags { </span><span class="s1">&quot;RenderType&quot;</span><span class="s0">=</span><span class="s1">&quot;Opaque&quot; </span><span class="s0">}</span>
+            <span class="s0">LOD </span><span class="s3">200</span>
+           
+            <span class="s0">CGPROGRAM</span>
+			<span class="s2">//define the surface shader</span>
+            <span class="s4">#pragma </span><span class="s0">surface surf Lambert</span>
+			<span class="s2">//need to declare the variables from above here also, so they are used for the actual Shader</span>
+			
+			<span class="s0">samplerCUBE _Cube;</span>
+			<span class="s0">fixed4 _ReflectColor;</span>
+			<span class="s0">fixed4 _Player;</span>
+			<span class="s2">//define the input structure to the surface shader</span>
+            <span class="s4">struct </span><span class="s0">Input {</span>
+			<span class="s2">//load only the world position variable of each pixel, which is the key to the entire process, since this is what allows the cubemap to the properly mapped</span>
+				<span class="s0">float3 worldPos;</span>
+            <span class="s0">};</span>
+		<span class="s2">//define the rotation variable here, again, not used so commented</span>
+           <span class="s2">//fixed4 _Rotation;</span>
+
+		   <span class="s2">//actual surface shader code</span>
+			<span class="s4">void </span><span class="s0">surf (Input IN, inout SurfaceOutput o) { </span>
+			
+			<span class="s2">//below is the rotation code (i.e. rotate the texture with the players position, not really used now)</span>
+				<span class="s2">//float sx = sin ( _Rotation.x  );</span>
+				<span class="s2">//float cx = cos ( _Rotation.x  );</span>
+
+				<span class="s2">//float3x3 rotationMatrixX = float3x3( 1, 0, 0, 0, cx, -sx, 0, sx, cx);</span>
+
+				<span class="s2">//float sy = sin ( _Rotation.y  );</span>
+				<span class="s2">//float cy = cos ( _Rotation.y  );</span>
+
+				<span class="s2">//float3x3 rotationMatrixY = float3x3( cy, 0, sy, 0, 1, 0, -sy, 0, cy);</span>
+
+				<span class="s2">//float sz = sin ( _Rotation.z  );</span>
+				<span class="s2">//float cz = cos ( _Rotation.z  );</span>
+
+				<span class="s2">//float3x3 rotationMatrixZ = float3x3( cz, -sz, 0, sz, cz, 0, 0, 0, 1);</span>
+
+				<span class="s2">//IN.worldRefl = mul(IN.worldRefl, rotationMatrixX);</span>
+				<span class="s2">//IN.worldRefl = mul(IN.worldRefl, rotationMatrixY);</span>
+				<span class="s2">//IN.worldRefl = mul(IN.worldRefl, rotationMatrixZ); </span>
+
+				<span class="s2">//correct the world position with the position of the player, allowing for the rendering to look as if seen by the player</span>
+				<span class="s0">IN.worldPos -= _Player.xyz;</span>
+				<span class="s2">//render the cube texture based on the corrected world position coordinates</span>
+				<span class="s0">fixed4 reflcol = texCUBE (_Cube, IN.worldPos);</span>
+				<span class="s2">//load the colors as the emission value of the output</span>
+				<span class="s0">o.Emission = reflcol.rgb * _ReflectColor.rgb;</span>
+				<span class="s2">//and the corresponding alpha, which doesn't really to much here</span>
+				<span class="s0">o.Alpha = reflcol.a * _ReflectColor.a;</span>
+
+               
+            <span class="s0">}</span>
+            <span class="s0">ENDCG</span>
+        <span class="s0">}</span>
+        <span class="s2">//FallBack &quot;Diffuse&quot;</span>
+    <span class="s0">}</span></pre>
+</body>
+</html>

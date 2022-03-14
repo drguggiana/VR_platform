@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.5019536, g: 0.5019536, b: 0.5019536, a: 1}
+  m_IndirectSpecularColor: {r: 0.842774, g: 0.842774, b: 0.842774, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -678,6 +678,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b7b7e81bc0d697241a1b9864142bdb2e, type: 3}
+--- !u!4 &964928 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 964927}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &964929 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4606623814324424283, guid: b7b7e81bc0d697241a1b9864142bdb2e,
@@ -795,7 +800,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 964929}
+  - {fileID: 964928}
   - {fileID: 615487338}
   - {fileID: 368643080}
   - {fileID: 1556666291}
@@ -1002,11 +1007,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f3b079b0aea4c443aeae73def6268a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  StreamingClient: {fileID: 303620641}
+  streamingClient: {fileID: 0}
+  rigidBodyID: 0
   osc: {fileID: 1005790155}
-  MouseObj: {fileID: 832616584}
-  tracking_square: {fileID: 1733550045}
-  RigidBodyId: 4
+  trackingSquare: {fileID: 0}
+  mouse: {fileID: 0}
 --- !u!4 &832616586 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4789960278319098, guid: e45037862af4ac641a9a461284ec0001,
@@ -1042,9 +1047,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f47d9fa8e3c7b940ae29e1c6cd1beae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inPort: 6969
+  inPort: 2324
   outIP: 127.0.0.2
-  outPort: 6161
+  outPort: 2325
 --- !u!4 &1005790156
 Transform:
   m_ObjectHideFlags: 0
@@ -1539,12 +1544,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1556666290}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1733550045 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7774301008284336454, guid: b7b7e81bc0d697241a1b9864142bdb2e,
-    type: 3}
-  m_PrefabInstance: {fileID: 964927}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1225341008395911
 GameObject:
   m_ObjectHideFlags: 0
@@ -1720,7 +1719,7 @@ Transform:
   - {fileID: 4708840243206519}
   - {fileID: 4332174650886657}
   m_Father: {fileID: 964929}
-  m_RootOrder: 2
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: -1.336, z: 0}
 --- !u!4 &4708840243206519
 Transform:
