@@ -1,29 +1,42 @@
-// Taken from the example at 
-// https://forum.unity.com/threads/solved-how-to-add-an-alpha-mask-over-the-existing-transparent-cutout-soft-edge-unlit-shader.289856/    
-Shader "Custom/GaussianAlpha" ////////// Shader renamed
+Shader "Custom/GaussianAlpha" 
     {
-       Properties
-       {
-          _Color ("Mask Color", Color) = (1, 1, 1, 1) ////////// _Color property added to this shader
-          _MainTex ("Base (RGB)", 2D) = "white" {}
-          _Mask ("Culling Mask", 2D) = "white" {}
-          _Cutoff ("Alpha cutoff", Range (0,1)) = 0.1
-       }
-       SubShader
-       {
-          Tags {"Queue"="Transparent"}
-          Cull Off ////////// I added this line to have the both sides of my plane mesh visible
-          Lighting Off
-          ZWrite Off
-          Blend SrcAlpha OneMinusSrcAlpha
-          AlphaTest GEqual [_Cutoff]
-          Pass
-          {
-             SetTexture [_Mask] {
-                 constantColor [_Color]
-                 Combine texture * constant ////////// The alpha component of the _Color property defines the Culling Mask opacity (depending on the distance between the player and the grid)
-                }
-             SetTexture [_MainTex] {combine texture, previous}
-          }
-       }
-    }
+ 
+     Properties
+     {
+         _MaskColor ("Mask Color", Color) = (0.5, 0.5, 0.5, 1)
+         _MaskTex ("Mask", 2D) = "white" {}
+         _Sigma ("Alpha Sigma", Range(0, 1)) = 0.2
+         _Gain ("Alpha Gain", Range(0, 10)) = 1
+         [IntRange] _Invert ("Invert", Range(0, 1)) = 0
+     }
+ 
+     SubShader
+     {
+         Tags {"Queue"="AlphaTest" "IgnoreProjector"="True" "RenderType"="Transparent"}
+         LOD 300
+         
+         CGPROGRAM
+         #pragma surface surf Lambert alpha:fade
+
+         float4 _MaskColor;
+         float _Sigma;
+         float _Gain;
+         sampler2D _MaskTex;
+         int _Invert;
+
+         #define PI 3.141592653589793
+ 
+         struct Input
+         {
+             float2 uv_MaskTex;
+         };
+ 
+         void surf (Input IN, inout SurfaceOutput o)
+         {
+             o.Emission = _MaskColor.rgb;
+             o.Alpha = clamp(_Gain * exp(-0.5 * pow(tex2D(_MaskTex, IN.uv_MaskTex).a / _Sigma, 2)) + _Invert, 0, 1) ;
+         }
+         ENDCG
+     }
+}
+
