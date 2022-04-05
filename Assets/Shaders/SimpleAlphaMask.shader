@@ -30,7 +30,7 @@ Shader "Custom/SimpleAlphaMask"
          {
              o.Emission = _MaskColor.rgb;
              // o.Alpha = pow(1 - tex2D(_MaskTex, IN.uv_MaskTex), _Gain);
-             o.Alpha = clamp(_Gain * (1 - tex2D(_MaskTex, IN.uv_MaskTex).a) + _Invert, 0, 1);
+             o.Alpha = clamp(_Gain * (1 - tex2D(_MaskTex, IN.uv_MaskTex).a) , 0, 1);
          }
          ENDCG
      }
