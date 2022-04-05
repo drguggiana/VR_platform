@@ -17,7 +17,7 @@ public class AssignSpatialTempFreq : MonoBehaviour
     public float orientation;
     public float spatialFreq;     // units: cycles/deg
     public float temporalFreq;    // units: cycles/sec (Hz)
-    private float uvOffset = 0;
+    public float uvOffset = 0;
 
     private Material stripesMaterial;
 
