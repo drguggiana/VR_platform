@@ -14,14 +14,14 @@ public class AssignGaussianAlpha : MonoBehaviour
     public float gaborSizeDeg = 50f;     // units: deg
     
     private Material maskMaterial;
-    private RenderTexture maskTexture;
-    
     private float _Sigma;
 
 
     // Start is called before the first frame update
     void Start()
     {
+        maskMaterial = GetComponent<Renderer>().material;
+        
         // Get distance between center of object and reference transform
         // If a sphere, assumes reference is inside the sphere
         // If a plane, assumes object is perpendicular to the reference and centered on it 
