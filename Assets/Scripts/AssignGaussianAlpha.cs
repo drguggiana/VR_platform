@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class AssignGaussianAlpha : MonoBehaviour
@@ -13,20 +11,17 @@ public class AssignGaussianAlpha : MonoBehaviour
 
     public surfaces surfaceType;
     public Transform referencePoint;
-    public float gaborSize;     // units: deg
+    public float gaborSizeDeg = 50f;     // units: deg
     
     private Material maskMaterial;
     private RenderTexture maskTexture;
     
-    private float _GaborSize;
+    private float _Sigma;
 
 
     // Start is called before the first frame update
     void Start()
     {
-        maskMaterial = GetComponent<Renderer>().material;
-        maskTexture = RenderTexture.GetTemporary(64, 64, 16, RenderTextureFormat.R8);
-        
         // Get distance between center of object and reference transform
         // If a sphere, assumes reference is inside the sphere
         // If a plane, assumes object is perpendicular to the reference and centered on it 
@@ -36,14 +31,11 @@ public class AssignGaussianAlpha : MonoBehaviour
         {
             case surfaces.Sphere:
                 float radius = GetComponent<MeshRenderer>().bounds.size.magnitude / 2.0f;
-
+                _Sigma = calculateGaussianSigma(gaborSizeDeg, radius);
                 break;
             
             case surfaces.Plane:
-                float width = GetComponent<MeshRenderer>().bounds.size.x;
-                float gamma = subtendedVisualAngle(width, distanceToRef);
-
-
+                _Sigma = calculateGaussianSigma(gaborSizeDeg, distanceToRef);
                 break;
             
             default:
@@ -51,25 +43,22 @@ public class AssignGaussianAlpha : MonoBehaviour
             
         }
         
-        // Assign the number of cycles
-        maskMaterial.SetFloat("_GaborSize", _GaborSize);
+        // Assign the Guassian standard deviation
+        maskMaterial.SetFloat("_Sigma", _Sigma);
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
+    
     public void SetInvert(int invertVal)
     {
         maskMaterial.SetInt("_Invert", invertVal);
     }
-    
-    float subtendedVisualAngle(float width, float distance)
+
+    float calculateGaussianSigma(float visAngle, float distance)
     {
-        // Get visual angle subtended by the plane
-        float gamma = 2 * (float) Math.Atan(width / 2.0f / distance) * (180f / (float)Math.PI);
-        return gamma;
+        // Calculates the standard deviation needed for the Gaussian given the desired subtended visual angle.
+        // Uses full width at tenth of max (FWTM - the inflection point of the Gaussian) as the window size
+        float windowWidth = 2 * distance * (float) Math.Tan(visAngle * (float) Math.PI / 180f);
+        float sigma = windowWidth / 4.29193f;
+        
+        return sigma;
     }
 }

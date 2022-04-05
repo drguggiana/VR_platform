@@ -17,7 +17,7 @@ public class AssignSpatialTempFreq : MonoBehaviour
     public float orientation;
     public float spatialFreq;     // units: cycles/deg
     public float temporalFreq;    // units: cycles/sec (Hz)
-    public float uvOffset = 0;
+    private float uvOffset = 0;
 
     private Material stripesMaterial;
 
@@ -76,8 +76,6 @@ public class AssignSpatialTempFreq : MonoBehaviour
         
         // Assign the orientation of the stripes
         stripesMaterial.SetFloat("_Orientation", orientation);
-        // transform.localRotation = Quaternion.identity;
-        // transform.localRotation = Quaternion.AngleAxis(orientation, -Vector3.forward);
     }
     
     float calculateCyclesOnSphere(float sf, float radius)

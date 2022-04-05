@@ -430,7 +430,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh-1316
+  m_Name: pb_Mesh-1998
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -621,7 +621,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4715335305075038, guid: e45037862af4ac641a9a461284ec0001, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.2347
+      value: 0.357
       objectReference: {fileID: 0}
     - target: {fileID: 4715335305075038, guid: e45037862af4ac641a9a461284ec0001, type: 3}
       propertyPath: m_LocalPosition.z
@@ -877,7 +877,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh-7368
+  m_Name: pb_Mesh-1984
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -1199,12 +1199,6 @@ Mesh:
     offset: 0
     size: 0
     path: 
---- !u!1 &986857966 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 814496517625117200, guid: 908e80a70d5b44744a01fb83a9e2eb3b,
-    type: 3}
-  m_PrefabInstance: {fileID: 8339874161581999999}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1005790154
 GameObject:
   m_ObjectHideFlags: 0
@@ -1371,7 +1365,7 @@ MonoBehaviour:
   streamingClient: {fileID: 303620641}
   rigidBodyID: 4
   osc: {fileID: 1005790155}
-  trackingSquare: {fileID: 986857966}
+  trackingSquare: {fileID: 0}
   mouse: {fileID: 1174232804}
   gaborStim: {fileID: 657844745}
 --- !u!43 &1274658352
@@ -1819,7 +1813,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh28794
+  m_Name: pb_Mesh22316
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -2076,6 +2070,11 @@ PrefabInstance:
       objectReference: {fileID: 789389241}
     - target: {fileID: 369257030689906340, guid: 1e4a04e8439ed4a4a84e42c519433197,
         type: 3}
+      propertyPath: gaborSizeDeg
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 369257030689906340, guid: 1e4a04e8439ed4a4a84e42c519433197,
+        type: 3}
       propertyPath: referencePoint
       value: 
       objectReference: {fileID: 1174232805}
@@ -2088,6 +2087,41 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 369257030689906343, guid: 1e4a04e8439ed4a4a84e42c519433197,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 369257030689906343, guid: 1e4a04e8439ed4a4a84e42c519433197,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 369257030689906343, guid: 1e4a04e8439ed4a4a84e42c519433197,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 369257030689906343, guid: 1e4a04e8439ed4a4a84e42c519433197,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 369257030689906343, guid: 1e4a04e8439ed4a4a84e42c519433197,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 369257030689906343, guid: 1e4a04e8439ed4a4a84e42c519433197,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 369257030689906343, guid: 1e4a04e8439ed4a4a84e42c519433197,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1e4a04e8439ed4a4a84e42c519433197, type: 3}
@@ -4102,7 +4136,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 908e80a70d5b44744a01fb83a9e2eb3b, type: 3}
 --- !u!4 &8339874161582000000 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 4199663843869588258, guid: 908e80a70d5b44744a01fb83a9e2eb3b,
+  m_CorrespondingSourceObject: {fileID: 9080726721213085730, guid: 908e80a70d5b44744a01fb83a9e2eb3b,
     type: 3}
   m_PrefabInstance: {fileID: 8339874161581999999}
   m_PrefabAsset: {fileID: 0}
