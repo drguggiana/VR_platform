@@ -80,6 +80,11 @@ public class RecorderBase : MonoBehaviour
         // Write initial parameters and header to file
         LogSceneParams();
         
+        // For debugging only
+        #if (UNITY_EDITOR)
+                InSession = true;
+                Release = true;
+        #endif
     }
 
     // Update is called once per frame
@@ -172,10 +177,10 @@ public class RecorderBase : MonoBehaviour
         // handle any obstacles in the arena. This only logs the centroid of the obstacle
         foreach (GameObject obstacle in HelperFunctions.FindObsWithTag("Obstacle"))
         {
-            string thisObstacle = obstacle.name.ToLower();
+            string thisObstacle = obstacle.name.ToLower().Replace(" ", "_");
             Vector3 obstaclePosition = obstacle.transform.position;
             object[] obstacleCoords = { obstaclePosition.x, obstaclePosition.y, obstaclePosition.z };
-            thisObstacle = string.Concat(thisObstacle + "obs:", " [", string.Join(",", obstacleCoords), "]");
+            thisObstacle = string.Concat(thisObstacle + "_obs:", " [", string.Join(",", obstacleCoords), "]");
             Writer.WriteLine(thisObstacle);
         }
 
