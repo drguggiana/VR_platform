@@ -33,7 +33,13 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
     private float _trialDuration = 5;         // In seconds
     private float _interStimulusInterval = 5;     // In seconds
     
-    
+    // Private variables for shadow exclusion
+    private float[] _shadowEdgeLeft = new float[2];
+    private float[] _shadowEdgeRight = new float[2];
+    private int centerGabor;
+    private int widthGabor;
+    private int overlapThreshold;
+
     // Start is called before the first frame update
     protected override void Start()
     {
@@ -49,6 +55,14 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // Get the scripts for the gabor assignments
         _assignSpatialTempFreq = gaborStim.GetComponent<AssignSpatialTempFreq>();
         _assignGaussianAlpha = gaborStim.GetComponentInChildren<AssignGaussianAlpha>();
+        
+        // Get the vertices of the shadow for calculation and set overlap variables
+        float[] _shadowBoundaries = SetupShadowExclusion();
+        Array.Copy(_shadowBoundaries, 0, _shadowEdgeLeft, 0, 2);
+        Array.Copy(_shadowBoundaries, 2, _shadowEdgeRight, 0, 2);
+        centerGabor = (int) gaborStim.transform.GetChild(0).transform.rotation.z; //Paths.shadow_boundaries[4];
+        widthGabor = (int) _assignGaussianAlpha.gaborSizeDeg;   //Paths.shadow_boundaries[5];
+        overlapThreshold = Paths.shadow_overlap_threshold; //Paths.shadow_boundaries[6];
 
         // This function overrides the one found in the RecorderBase class
         AssembleHeader();
@@ -121,6 +135,85 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
 
     }
     
+    // *** Functions that are unique to this scene *** //
+    
+    // Handle shadow exclusion
+    float[] SetupShadowExclusion()
+    {
+        // Get the x and z coordinates of the shadow region boundaries
+        
+        float[] globalTopCorners = new float[4];
+        int i = 0;
+        foreach (GameObject corner in HelperFunctions.FindObsWithTag("ShadowEdge"))
+        {
+            Vector3 cornerPosition = corner.transform.localPosition;
+            globalTopCorners[i] = cornerPosition.x;
+            i++;
+            globalTopCorners[i] = cornerPosition.z;
+            i++;
+        }
+        return globalTopCorners;
+    }
+
+    bool GateTrial()
+    {
+        if (_inTrial)
+        {
+            // Goal is to get the angle subtended by the shadow
+
+            // determine the vectors to the shadow from the head of the mouse (correcting position units to mm)
+            float xVectorLeftRelative = (_shadowEdgeLeft[0] - MousePosition.x) * 1000;
+            float zVectorLeftRelative = (_shadowEdgeLeft[1] - MousePosition.z) * 1000;
+            float xVectorRightRelative = (_shadowEdgeRight[0] - MousePosition.x) * 1000;
+            float zVectorRightRelative = (_shadowEdgeRight[1] - MousePosition.z) * 1000;
+            
+            // based on these vectors, determine the heading angles of the shadow wrt the 0 azimuth of the mouse
+            float angleLeftAbsolute = Mathf.Atan2(zVectorLeftRelative, -xVectorLeftRelative) * Mathf.Rad2Deg;
+            float angleRightAbsolute = Mathf.Atan2(zVectorRightRelative, -xVectorRightRelative) * Mathf.Rad2Deg;
+            
+            // get the center angle and width
+            float widthShadow = Mathf.Abs(Mathf.DeltaAngle(angleLeftAbsolute, angleRightAbsolute));
+            float centerShadowAbsolute = widthShadow / 2 + angleLeftAbsolute;
+            
+            // convert the mouse orientation to -180-180 coordinates from 0-360
+            float mouseCorrectedOri;
+            if (MouseOrientation.y > 180)
+            {
+                mouseCorrectedOri = MouseOrientation.y - 360;
+            }
+            else
+            {
+                mouseCorrectedOri = MouseOrientation.y;    
+            }
+            // convert the center to relative to mouse heading
+            float centerShadowRelative =  Mathf.DeltaAngle(mouseCorrectedOri, centerShadowAbsolute);
+            
+            // quantify the overlap with the visual field
+            float overlap = Mathf.Clamp(Mathf.Min(widthShadow, widthGabor) 
+                            - Mathf.Abs(Mathf.DeltaAngle(centerGabor, centerShadowRelative))
+                            + Mathf.Abs(widthShadow - widthGabor) / 2, 0.0f, 360);
+           
+            // compare to a threshold and output the boolean result
+            if (overlap > overlapThreshold)
+            {
+                // _assignSpatialTempFreq.uvOffset = 0;
+                if (_assignGaussianAlpha.invertState == 0)
+                {
+                    _assignGaussianAlpha.SetInvert(1);
+                } 
+                return false;
+            }
+            
+            if (_assignGaussianAlpha.invertState == 1)
+            {
+                _assignGaussianAlpha.SetInvert(0);
+            } 
+            return true;
+        }
+
+        return true;
+    }
+
 
     // --- Functions for handling the trial structure of the task --- //
     void StartTrial()
@@ -167,65 +260,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // Reset trial timer
         _trialTimer = 0;
     }
-
-    bool GateTrial()
-    {
-        if (_inTrial)
-        {
-            // Goal is to get the angle subtended by the shadow
-
-            // unpack the coordinates of the shadow edges 
-            int[] edgeLeft = new int[2]; 
-            int[] edgeRight = new int[2];
-
-            Array.Copy(Paths.shadow_boundaries, 0, edgeLeft, 0, 2);
-            Array.Copy(Paths.shadow_boundaries, 2, edgeRight, 0, 2);
-            // unpack the stimulus data
-            int centerStim = Paths.shadow_boundaries[4];
-            int widthStim = Paths.shadow_boundaries[5];
-            int threshold = Paths.shadow_boundaries[6];
-            
-            // determine the vectors to the shadow from the head of the mouse (correcting position units to mm)
-            float xVectorLeftRelative = edgeLeft[0] - MousePosition.x * 1000;
-            float zVectorLeftRelative = edgeLeft[1] - MousePosition.z * 1000;
-            float xVectorRightRelative = edgeRight[0] - MousePosition.x * 1000;
-            float zVectorRightRelative = edgeRight[1] - MousePosition.z * 1000;
-            // based on these vectors, determine the heading angles of the shadow wrt the 0 azimuth of the mouse
-            float angleLeftAbsolute = Mathf.Atan2(zVectorLeftRelative, -xVectorLeftRelative) * Mathf.Rad2Deg;
-            float angleRightAbsolute = Mathf.Atan2(zVectorRightRelative, -xVectorRightRelative) * Mathf.Rad2Deg;
-            // get the center angle and width
-            float widthShadow = Mathf.Abs(Mathf.DeltaAngle(angleLeftAbsolute, angleRightAbsolute));
-            float centerShadowAbsolute = widthShadow / 2 + angleLeftAbsolute;
-            // convert the mouse orientation to -180-180 coordinates from 0-360
-            float mouseCorrectedOri;
-            if (MouseOrientation.y > 180)
-            {
-                mouseCorrectedOri = MouseOrientation.y - 360;
-            }
-            else
-            {
-                mouseCorrectedOri = MouseOrientation.y;    
-            }
-            // convert the center to relative to mouse heading
-            float centerShadowRelative =  Mathf.DeltaAngle(mouseCorrectedOri, centerShadowAbsolute);
-            
-            // quantify the overlap with the visual field
-            float overlap = Mathf.Clamp(Mathf.Min(widthShadow, widthStim) 
-                            - Mathf.Abs(Mathf.DeltaAngle(centerStim, centerShadowRelative))
-                            + Mathf.Abs(widthShadow - widthStim) / 2, 0.0f, 360);
-            // compare to a threshold and output the boolean result
-            if (overlap > threshold)
-            {
-                _assignSpatialTempFreq.uvOffset = 0;
-                return false;
-            }
-
-            return true;
-        }
-
-        return true;
-    }
-
+    
     void OnReceiveTrialSetup(OscMessage message)
     {
         // Parse the values for trial structure setup
