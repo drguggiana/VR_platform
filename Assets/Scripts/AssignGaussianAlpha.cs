@@ -12,7 +12,6 @@ public class AssignGaussianAlpha : MonoBehaviour
     public surfaces surfaceType;
     public Transform referencePoint;
     public float gaborSizeDeg = 50f;     // units: deg
-    public int invertState = 1;
     
     private Material maskMaterial;
     private float _Sigma;
@@ -42,7 +41,7 @@ public class AssignGaussianAlpha : MonoBehaviour
             default:
                 break;
             
-        }   
+        }
         
         // Assign the Guassian standard deviation
         maskMaterial.SetFloat("_Sigma", _Sigma);
@@ -50,7 +49,6 @@ public class AssignGaussianAlpha : MonoBehaviour
     
     public void SetInvert(int invertVal)
     {
-        invertState = invertVal;
         maskMaterial.SetInt("_Invert", invertVal);
     }
 

@@ -14,7 +14,6 @@ TagManager:
   - StartFloor
   - CalibrationSphere
   - vrCricket
-  - ShadowEdge
   layers:
   - Default
   - TransparentFX
