@@ -6,7 +6,7 @@ using UnityEngine;
 
 /*
  This class is a child of the RecorderBase class. It inherits most of its functionality from there.
- See RecorderBase for detailed explanation of what goes on under the hood.
+ See RecorderBas.cs for detailed explanation of what goes on under the hood.
  
  This class is responsible for sending and receiving information about the trial parameters from
  Python, handling trial timing, logging the mouse position from the Optitrack system, and logging 
@@ -84,17 +84,21 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // --- Handle trial structure --- //
         if (InSession)
         {
-            if (GateTrial())
-            {
-                // advance the timer and record the actual trial number
-                _trialTimer += Time.deltaTime;
-                _trialNumWrite = _trialNum;
-            }
-            else
-            {
-                // timer stays and we tag the frames
-                _trialNumWrite = -2;
-            }
+            // if (GateTrial())
+            // {
+            //     // advance the timer and record the actual trial number
+            //     _trialTimer += Time.deltaTime;
+            //     _trialNumWrite = _trialNum;
+            // }
+            // else
+            // {
+            //     // timer stays and we tag the frames
+            //     _trialNumWrite = -2;
+            // }
+            
+            // advance the timer and record the actual trial number
+            _trialTimer += Time.deltaTime;
+            _trialNumWrite = _trialNum;
 
             if (_inTrial)
             {
