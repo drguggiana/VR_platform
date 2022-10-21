@@ -10,6 +10,8 @@ public class Optitrack_mod1 : MonoBehaviour
 {
     public OptitrackStreamingClient StreamingClient;
     public Int32 RigidBodyId;
+    
+    private Vector3 _arenaPosition;
 
 
     void Start()
@@ -27,6 +29,8 @@ public class Optitrack_mod1 : MonoBehaviour
                 return;
             }
         }
+
+        // MoveParentPivot();
     }
 
 
@@ -38,6 +42,19 @@ public class Optitrack_mod1 : MonoBehaviour
             this.transform.localPosition = rbState.Pose.Position;
             this.transform.localRotation = rbState.Pose.Orientation;
             //Debug.Log(this.transform.localPosition);
+        }
+    }
+
+    void MoveParentPivot()
+    {
+        
+        
+        OptitrackRigidBodyState rbState = StreamingClient.GetLatestRigidBodyState(RigidBodyId);
+        if (rbState != null)
+        {
+            _arenaPosition = new Vector3(-rbState.Pose.Position.x, 0, -rbState.Pose.Position.z);
+            
+            this.transform.parent.localPosition += _arenaPosition;
         }
     }
 }
