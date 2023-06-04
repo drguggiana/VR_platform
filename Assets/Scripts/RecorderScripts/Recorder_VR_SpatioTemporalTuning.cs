@@ -62,7 +62,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         Array.Copy(_shadowBoundaries, 2, _shadowEdgeRight, 0, 2);
         centerGabor = (int) gaborStim.transform.GetChild(0).transform.rotation.z; //Paths.shadow_boundaries[4];
         widthGabor = (int) _assignGaussianAlpha.gaborSizeDeg;   //Paths.shadow_boundaries[5];
-        overlapThreshold = Paths.shadow_overlap_threshold; //Paths.shadow_boundaries[6];
+        // overlapThreshold = Paths.shadow_overlap_threshold; //Paths.shadow_boundaries[6];
 
         // This function overrides the one found in the RecorderBase class
         AssembleHeader();
