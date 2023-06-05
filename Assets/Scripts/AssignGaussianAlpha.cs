@@ -58,8 +58,8 @@ public class AssignGaussianAlpha : MonoBehaviour
     {
         // Calculates the standard deviation needed for the Gaussian given the desired subtended visual angle.
         // Uses full width at tenth of max (FWTM - the inflection point of the Gaussian) as the window size
-        float windowWidth = 2 * distance * (float) Math.Tan(visAngle * (float) Math.PI / 180f);
-        float sigma = windowWidth / 4.29193f;
+        float windowWidth = distance * (float) Math.Tan(visAngle * (float) Math.PI / 180f);
+        float sigma = 1 - (windowWidth / 4.29193f);
         
         return sigma;
     }

@@ -35,6 +35,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _AlphaTex:
+        m_Texture: {fileID: 2800000, guid: 4d000a838bc828742a99d4deb981d313, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _BaseMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -60,9 +64,9 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 10307, guid: 0000000000000000f000000000000000, type: 0}
         m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
+        m_Offset: {x: 0.5, y: 0.5}
     - _MaskTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -121,7 +125,7 @@ Material:
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 1
     - _Frequency: 1
-    - _Gain: 1
+    - _Gain: 1.13
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
@@ -138,6 +142,7 @@ Material:
     - _QueueOffset: 0
     - _RenderQueueType: 1
     - _SampleGI: 0
+    - _Sigma: 4.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -181,7 +186,7 @@ Material:
     - _Color4: {r: 0, g: 0, b: 1, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _MaskColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    - _MaskColor: {r: 0.1254902, g: 0.1254902, b: 0.1254902, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &1984627032437322355
 MonoBehaviour:
