@@ -4,7 +4,7 @@ Shader "Custom/GaussianAlpha"
         _MaskColor ("Mask Color", Color) = (0.5, 0.5, 0.5, 1)
         _MainTex ("Color (RGB)", 2D) = "white" {}
         _AlphaTex("Alpha (A)", 2D) = "white" {}
-        _Sigma ("Alpha Sigma", Range(0, 5)) = 0.2
+        _Sigma ("Alpha Sigma", Range(0, 1)) = 0.2
         _Gain ("Alpha Gain", Range(1, 2)) = 1
         [IntRange] _Invert ("Invert", Range(0, 1)) = 0
     }
@@ -71,12 +71,12 @@ Shader "Custom/GaussianAlpha"
                     fixed4 c = tex2D(_MainTex, equiUV) * _MaskColor;
 
                     // Manipulate the alpha by shifting the width of the window
-                    // fixed4 alpha = clamp(_Gain * exp(-0.5 * pow(tex2D(_AlphaTex, equiUV) / _Sigma, 2)) + _Invert, 0, 1);
+                    fixed4 alpha = 1 - _Gain * exp(-0.5 * pow(tex2D(_AlphaTex, equiUV) / _Sigma, 2));
+
+                    // Clamp the range so we can close the window
+                    alpha = clamp(alpha + _Invert, 0, 1);
                     // fixed4 alpha = clamp((_Gain / (pow(2 * PI, 0.5) * _Sigma)) * exp(-0.5 * pow(tex2D(_AlphaTex, equiUV) / _Sigma, 2)) + _Invert, 0, 1);
-                    fixed4 alpha = clamp(_Gain * pow(tex2D(_AlphaTex, equiUV) / _Sigma, 2) + _Invert, 0, 1);
                     
-
-
                     // Blend the masks
                     return fixed4(c.r, c.g, c.b, alpha.r);
                 }
