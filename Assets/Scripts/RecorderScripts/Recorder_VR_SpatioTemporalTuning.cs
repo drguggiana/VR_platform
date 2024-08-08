@@ -18,6 +18,7 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
 {
     // Private variables for the Gabor stimulus
     public GameObject gaborStim;
+    public Boolean lockGaborRotation;
     private AssignSpatialTempFreq _assignSpatialTempFreq;
     private AssignGaussianAlpha _assignGaussianAlpha;
     private float _orientation = 60.0f;
@@ -120,6 +121,13 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
         // Note that these functions are defined in the RecorderBase class
         base.Update();
         
+        // Prevent rotation of Gabor sphere (if testing)
+        if (lockGaborRotation)
+        {
+            gaborStim.transform.rotation = Quaternion.Euler(0f, MouseOrientation.y, MouseOrientation.z);
+
+        }
+
         // --- Handle mouse data --- //
         object[] mouseData = { MousePosition.x, MousePosition.y, MousePosition.z, 
                                MouseOrientation.x, MouseOrientation.y, MouseOrientation.z };
@@ -313,6 +321,11 @@ public class Recorder_VR_SpatioTemporalTuning : RecorderBase
                            "mouse_x_m", "mouse_y_m", "mouse_z_m",
                            "mouse_xrot_m", "mouse_yrot_m", "mouse_zrot_m",
                            "grating_phase", "color_factor"};
+        
+        // string[] header = {"time_m", "trial_num",
+        //     "mouse_local_xrot_m", "mouse_local_yrot_m", "mouse_local_zrot_m",
+        //     "mouse_global_xrot_m", "mouse_global_yrot_m", "mouse_global_zrot_m",
+        //     "grating_phase", "color_factor"};
 
         Writer.WriteLine(string.Join(",", header));
     }

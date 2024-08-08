@@ -71,7 +71,7 @@ public class CamCubemap6 : MonoBehaviour
             rtex.dimension = UnityEngine.Rendering.TextureDimension.Cube;
             //also hide the flags from the inspector
             rtex.hideFlags = HideFlags.HideAndDontSave;
-            //include only the "projector" layer, as defined in the inspector
+            //include only the "Cubed" layer, as defined in the inspector
             cam.cullingMask = 1 << 9;
             //set the render texture as the texture to be used by the shader (i.e. in the material in the object containint the script)
             GetComponent<Renderer>().sharedMaterial.SetTexture("_Cube", rtex);

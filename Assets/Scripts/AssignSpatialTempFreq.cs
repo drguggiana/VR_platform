@@ -32,7 +32,7 @@ public class AssignSpatialTempFreq : MonoBehaviour
         stripesMaterial = GetComponent<Renderer>().material;
         
         // This is interesting because the temporal frequency is set by the linear motion of the UV, and not the stripes
-        // themselves. For a sphere, it is the same on a 
+        // themselves. For a sphere, it is the same on a plane
         // gratingSpeed = temporalFreq;
         
         // Get distance between center of object and reference transform

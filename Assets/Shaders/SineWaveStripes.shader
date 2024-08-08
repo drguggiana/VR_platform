@@ -2,8 +2,7 @@ Shader "Custom/SineWaveStripes"
 {
     Properties
     {
-		_Color1 ("Color 1", Color) = (0,0,0,1)
-		_Color2 ("Color 2", Color) = (1,1,1,1)
+		_ControlColor ("Control Color", Color) = (0,0,0,1)
 		_Cycles ("Cycles", Range(0.1, 50)) = 2
 		_Orientation ("Orientation", Range(-180, 180)) = 0
 		_Offset ("Offset", float) = 0
@@ -12,7 +11,7 @@ Shader "Custom/SineWaveStripes"
     SubShader
 	{
 
-		Pass
+		Pass 
 		{
 			CGPROGRAM
 			#pragma vertex vert
@@ -20,12 +19,10 @@ Shader "Custom/SineWaveStripes"
 			
 			#include "UnityCG.cginc"
 
-			fixed4 _Color1;
-			fixed4 _Color2;
+			fixed4 _ControlColor;
 			float _Cycles;
 			float _Orientation;
 			float _Offset;
-			sampler2D _MainTex;
 
 			#define PI 3.141592653589793
 
@@ -54,7 +51,7 @@ Shader "Custom/SineWaveStripes"
 				pt -= center;
 
             	// right hand rule
-            	float3x3 rot_mat= float3x3(1., 0., 0., 0., cosAngle, -sinAngle, 0, sinAngle, cosAngle); 
+            	float3x3 rot_mat= float3x3(1., 0., 0., 0., cosAngle, sinAngle, 0, -sinAngle, cosAngle); 
             	float3 r = mul(rot_mat, pt);
 
 				r += center;
@@ -89,6 +86,8 @@ Shader "Custom/SineWaveStripes"
 				// Generate the stripes
 				return 0.5 + sin(2 * PI * pos.y) / 2;
 
+				// Used in control case when doing experiments with  no Gabor
+				// return _ControlColor;
 
 			}
 			ENDCG

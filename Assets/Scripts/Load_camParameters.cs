@@ -4,9 +4,9 @@ using UnityEngine;
 using System.IO;
 using System.Text.RegularExpressions;
 
+
 public class Load_camParameters : MonoBehaviour
 {
-
     public Camera cam;
     //    private string load_path;
     // Use this for initialization

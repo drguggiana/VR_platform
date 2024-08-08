@@ -115,7 +115,7 @@ Material:
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
-    - _Cycles: 10.5
+    - _Cycles: 10
     - _DepthOffsetEnable: 0
     - _DetailNormalMapScale: 1
     - _Direction: 0
@@ -135,7 +135,7 @@ Material:
     - _Motion: 0
     - _NumColors: 2
     - _OcclusionStrength: 1
-    - _Offset: 0.34
+    - _Offset: 0
     - _OpaqueCullMode: 2
     - _Orientation: 0
     - _Parallax: 0.02
@@ -180,10 +180,11 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Color1: {r: 0, g: 0, b: 0, a: 1}
-    - _Color2: {r: 1, g: 1, b: 1, a: 1}
+    - _Color1: {r: 0.1254902, g: 0.1254902, b: 0.1254902, a: 1}
+    - _Color2: {r: 0.59607846, g: 0.1254902, b: 0.1254902, a: 1}
     - _Color3: {r: 1, g: 0, b: 1, a: 1}
     - _Color4: {r: 0, g: 0, b: 1, a: 1}
+    - _ControlColor: {r: 0.1254902, g: 0.1254902, b: 0.1254902, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _MaskColor: {r: 0.1254902, g: 0.1254902, b: 0.1254902, a: 1}

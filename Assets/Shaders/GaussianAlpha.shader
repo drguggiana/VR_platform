@@ -72,6 +72,7 @@ Shader "Custom/GaussianAlpha"
 
                     // Manipulate the alpha by shifting the width of the window
                     fixed4 alpha = 1 - _Gain * exp(-0.5 * pow(tex2D(_AlphaTex, equiUV) / _Sigma, 2));
+                    // fixed4 alpha = 1- tex2D(_AlphaTex, equiUV);
 
                     // Clamp the range so we can close the window
                     alpha = clamp(alpha + _Invert, 0, 1);
